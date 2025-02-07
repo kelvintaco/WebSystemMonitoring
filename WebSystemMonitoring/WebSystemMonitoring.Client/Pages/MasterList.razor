@@ -1,0 +1,54 @@
+﻿@page "/masterlist"
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<h1>Master List</h1>
+
+@if (TransactList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="transactable">
+        <thead>
+            <tr>
+                <th>ParID</th>
+                <th>ItemCode</th>
+                <th>ItemName</th>
+                <th>ParName</th>
+                <th>DprName</th>
+                <th>ParDate</th>
+                <th>refNo</th>
+                <th>ParQty</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transactions in TransactList)
+            {
+                <tr>
+                    <td>@transactions.ParID</td>
+                    <td>@transactions.ItemCode</td>
+                    <td>@transactions.ItemName</td>
+                    <td>@transactions.ParName</td>
+                    <td>@transactions.DprName</td>
+                    <td>@transactions.ParDate.ToShortDateString</td>
+                    <td>@transactions.refNo</td>
+                    <td>@transactions.ParQty</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PAR>? TransactList;
+
+    protected override async Task OnInitializedAsync()
+	{
+		// Simulate asynchronous loading to demonstrate streaming rendering
+		await Task.Delay(500);
+        TransactList = await HttpClient.GetFromJsonAsync<List<PAR>>("https://localhost:7041/api/PAR");
+    }
+}
