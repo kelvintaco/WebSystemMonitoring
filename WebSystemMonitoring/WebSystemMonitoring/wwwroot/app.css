@@ -49,3 +49,70 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.pardatagrid {
+    padding: .5rem .5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    overflow-x: auto;
+}
+
+.pardatagrid th {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: .5rem;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+    .pardatagrid th:hover {
+        background-color: #e0e0e0;
+    }
+
+    .pardatagrid th:active {
+        background-color: #d0d0d0;
+    }
+
+.pardatagrid td {
+    padding: .5rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.pardatagrid tr:hover {
+    background-color: #f9f9f9;
+}
+
+.pardatagrid .rz-data-grid-header {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.pardatagrid .rz-data-grid-footer {
+    font-size: 14px;
+    color: #666;
+}
+
+.pardatagrid .rz-data-grid-pager {
+    margin-top: 10px;
+}
+.pardatagrid {
+    width: 100%;
+    overflow-x: auto;
+}
+
+    .pardatagrid th, .pardatagrid td {
+        white-space: nowrap;
+    }
+    .pardatagrid .rz-data-grid-header .rz-sort {
+        margin-left: 5px;
+    }
+
+        .pardatagrid .rz-data-grid-header .rz-sort.asc {
+            color: #333;
+        }
+
+        .pardatagrid .rz-data-grid-header .rz-sort.desc {
+            color: #667;
+        }

@@ -5,50 +5,70 @@
 
 <h1>Master List</h1>
 
-@if (TransactList == null)
+@if (IsLoading)
 {
-    <p><em>Loading...</em></p>
+    <div class="spinner-border" role="status">
+    </div>
 }
 else
 {
-    <table class="transactable">
-        <thead>
-            <tr>
-                <th>ParID</th>
-                <th>ItemCode</th>
-                <th>ItemName</th>
-                <th>ParName</th>
-                <th>DprName</th>
-                <th>ParDate</th>
-                <th>refNo</th>
-                <th>ParQty</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transactions in TransactList)
-            {
-                <tr>
-                    <td>@transactions.ParID</td>
-                    <td>@transactions.ItemCode</td>
-                    <td>@transactions.ItemName</td>
-                    <td>@transactions.ParName</td>
-                    <td>@transactions.DprName</td>
-                    <td>@transactions.ParDate.ToShortDateString</td>
-                    <td>@transactions.refNo</td>
-                    <td>@transactions.ParQty</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="ItemCode" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="ItemName" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="ParName" />
+            <RadzenDataGridColumn TItem="PAR" Property="DprName" Title="DprName" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="ParDate" />
+            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="RefNo" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="ParQty" />
+        </Columns>
+    </RadzenDataGrid>
 }
+
+<div class="mt-4 border p-4">
+    <h4>Print Forms</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <label for="Code">Code</label>
+            <select id="Code" class="form-control form-conrol-sm">
+                <option value="">Select Item Code</option>
+                
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="formtype">Form Type</label>
+            <select id="formtype" class="form-control form-conrol-sm">
+                <option value="">Select Form Type</option>
+                <option value="PAR">PAR</option>
+                <option value="ICS">ICS</option>
+                <option value="Surrender">Surrender</option>
+                <option value="Transfer">Transfer</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-primary mt-2">Print</button>
+</div>
 
 @code {
     private List<PAR>? TransactList;
+    private bool IsLoading = true;
+    private RadzenDataGrid<PAR> grid;
 
     protected override async Task OnInitializedAsync()
-	{
-		// Simulate asynchronous loading to demonstrate streaming rendering
-		await Task.Delay(500);
-        TransactList = await HttpClient.GetFromJsonAsync<List<PAR>>("https://localhost:7041/api/PAR");
+    {
+        await Task.Delay(500);
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            TransactList = JsonConvert.DeserializeObject<List<PAR>>(json);
+        }
+        else
+        {
+            TransactList = null;
+        }
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
     }
 }
