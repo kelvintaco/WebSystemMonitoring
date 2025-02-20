@@ -1,0 +1,56 @@
+﻿@using Radzen.Blazor
+@page "/addform"
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+
+<h1>Add Transaction</h1>
+
+<RadzenForm id="form">
+	<div name="RecepientDeets">
+		<RadzenFieldset>
+			<RadzenLabel Text="Recepient Name"/>
+			<RadzenTextBox></RadzenTextBox>
+		</RadzenFieldset>
+		<RadzenFieldset>
+			<RadzenLabel Text="Department" />
+			<RadzenTextBox></RadzenTextBox>
+		</RadzenFieldset>
+	</div>
+
+	<RadzenFieldset>
+		<RadzenLabel Text="Quantity" />
+		<RadzenTextBox></RadzenTextBox>
+	</RadzenFieldset>
+	<RadzenFieldset>
+		<RadzenLabel Text="Date" />
+		<RadzenDatePicker TValue="DateOnly"/>
+	</RadzenFieldset>
+	<div name="itemdropdown">
+		<RadzenFieldset>
+			<RadzenLabel Text="Item" />
+			<RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="true" AllowFiltering="true" Placeholder="Select an Item" Style="position: absolute;margin-bottom:20px"/>
+		</RadzenFieldset>
+	</div>
+
+</RadzenForm>
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js">
+</script>
+
+@code {
+	private List<string>? ItemList;
+	private string? SelectedItem; // Store the selected item
+
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
+		if (response.IsSuccessStatusCode)
+		{
+			ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
+			//ItemList = JsonConvert.DeserializeObject<List<string>>(json);
+		}
+	}
+}
