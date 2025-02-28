@@ -9,17 +9,14 @@
 <h1>Add Transaction</h1>
 
 <RadzenForm id="form">
-	<div name="RecepientDeets">
-		<RadzenFieldset>
-			<RadzenLabel Text="Recepient Name"/>
-			<RadzenTextBox></RadzenTextBox>
-		</RadzenFieldset>
-		<RadzenFieldset>
-			<RadzenLabel Text="Department" />
-			<RadzenTextBox></RadzenTextBox>
-		</RadzenFieldset>
-	</div>
-
+	<RadzenFieldset>
+		<RadzenLabel Text="Recepient Name"/>
+		<RadzenTextBox @bind-Value="RecepientName"></RadzenTextBox>
+	</RadzenFieldset>
+	<RadzenFieldset>
+		<RadzenLabel Text="Department" />
+		<RadzenTextBox></RadzenTextBox>
+	</RadzenFieldset>
 	<RadzenFieldset>
 		<RadzenLabel Text="Quantity" />
 		<RadzenTextBox></RadzenTextBox>
@@ -35,7 +32,7 @@
 		</RadzenFieldset>
 	</div>
 
-	<RadzenButton Text="Submit" ButtonType="ButtonType.Submit" Style="margin-top: 20px;" />
+	<RadzenButton Text="Submit" ButtonType="ButtonType.Submit" Click="SubmitForm" Style="margin-top: 20px;" />
 
 </RadzenForm>
 
@@ -43,8 +40,16 @@
 </script>
 
 @code {
-	private List<string>? ItemList;
-	private string? SelectedItem; // Store the selected item
+	public List<string>? ItemList;
+	public List<string>? CSTList;
+	public string? LatestCSTCode;
+	public string? RecepientName;
+	public string? DprName;
+	public int Quantity;
+	public DateOnly Date;
+	public string? SelectedItem;
+	public int referenceNo;
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -54,5 +59,44 @@
 			ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
 			//ItemList = JsonConvert.DeserializeObject<List<string>>(json);
 		}
+		var cstresponse = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
+		if (cstresponse.IsSuccessStatusCode)
+		{
+			CSTList = await cstresponse.Content.ReadFromJsonAsync<List<string>>();
+			LatestCSTCode = CSTList.LastOrDefault();
+		}
+	}
+
+	private async Task SubmitForm()
+	{
+		var random = new Random();
+		referenceNo = random.Next(100000, 999999);//generation ng ref no
+
+		var formData = new
+		{
+			RecepientName = RecepientName,
+			DprName = DprName,
+			Quantity = Quantity,
+			Date = Date,
+			SelectedItem = SelectedItem,
+			ReferenceNo = referenceNo
+		};
+
+		var custodianData = new
+		{
+			CSTCode = GenerateCSTCode(LatestCSTCode),
+			RecepientName = RecepientName,
+			DprName = DprName
+		};
+
+		var postPar = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transaction", formData);
+
+		var postCustodian = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Custodian", custodianData);
+	}
+
+	private string GenerateCSTCode(string latestCSTCode)
+	{
+		var number = int.Parse(latestCSTCode.Substring(3));
+		return $"CST {number.ToString("D3")}";
 	}
 }
