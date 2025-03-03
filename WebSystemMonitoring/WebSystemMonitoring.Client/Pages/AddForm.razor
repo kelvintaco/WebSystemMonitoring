@@ -15,15 +15,15 @@
 	</RadzenFieldset>
 	<RadzenFieldset>
 		<RadzenLabel Text="Department" />
-		<RadzenTextBox></RadzenTextBox>
+		<RadzenTextBox @bind-Value="DprName"></RadzenTextBox>
 	</RadzenFieldset>
 	<RadzenFieldset>
 		<RadzenLabel Text="Quantity" />
-		<RadzenTextBox></RadzenTextBox>
+		<RadzenNumeric @bind-Value="Quantity"></RadzenNumeric>
 	</RadzenFieldset>
 	<RadzenFieldset>
 		<RadzenLabel Text="Date" />
-		<RadzenDatePicker TValue="DateOnly"/>
+		<RadzenDatePicker TValue="DateOnly" @bind-Value="Date"/>
 	</RadzenFieldset>
 	<div name="itemdropdown">
 		<RadzenFieldset>
@@ -32,7 +32,7 @@
 		</RadzenFieldset>
 	</div>
 
-	<RadzenButton Text="Submit" ButtonType="ButtonType.Submit" Click="SubmitForm" Style="margin-top: 20px;" />
+	<RadzenButton Text="Submit" ButtonType="ButtonType.Submit" @onclick="SubmitForm" Style="margin-top: 20px;" />
 
 </RadzenForm>
 
@@ -40,6 +40,8 @@
 </script>
 
 @code {
+	@inject Radzen.NotificationService notificationService
+
 	public List<string>? ItemList;
 	public List<string>? CSTList;
 	public string? LatestCSTCode;
@@ -89,9 +91,30 @@
 			DprName = DprName
 		};
 
-		var postPar = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transaction", formData);
+		var postPar = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PAR", formData);
 
 		var postCustodian = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Custodian", custodianData);
+
+		if (postPar.IsSuccessStatusCode && postCustodian.IsSuccessStatusCode)
+		{
+			notificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Success,
+					Summary = "Success",
+					Detail = "Form submitted successfully!",
+					Duration = 4000
+				});
+		}
+		else
+		{
+			notificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Error,
+					Summary = "Error",
+					Detail = "Failed to submit form. Please try again.",
+					Duration = 4000
+				});
+		}
 	}
 
 	private string GenerateCSTCode(string latestCSTCode)

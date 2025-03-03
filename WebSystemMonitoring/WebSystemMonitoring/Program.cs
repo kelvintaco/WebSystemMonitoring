@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<Radzen.NotificationService>();
 
 var app = builder.Build();
 
