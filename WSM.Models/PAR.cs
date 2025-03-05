@@ -13,7 +13,7 @@ namespace APIFinal.Models
         [ForeignKey("CstCode")]
         public string ParName { get; set; }
         public string DprName { get; set; }
-        public DateOnly ParDate { get; set; }
+        public string ParDate { get; set; }
         public int refNo { get; set; }
         public int ParQty { get; set; }
     }
