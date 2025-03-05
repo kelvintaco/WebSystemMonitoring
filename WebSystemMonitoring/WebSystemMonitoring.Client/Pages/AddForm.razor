@@ -116,7 +116,7 @@
 				ParID = await GenerateParCode(),
 				ItemCode = ItemCode,
 				ItemName = SelectedItem,
-				CSTName = CSTName,
+				ParName = CSTName,
 				DPRName = DPRName,
 				ParDate = Date.ToString("yyyy-MM-dd"),
 				refNo = referenceNo,
@@ -142,18 +142,8 @@
 			var custodianDataJson = JsonConvert.SerializeObject(custodianData);
 
 			Console.WriteLine(JsonConvert.SerializeObject(custodianData));
-			// Send Custodian data request
-			var postCustodian = await HttpClient.PostAsync(
-				"https://localhost:7041/api/Custodian",
-				new StringContent(custodianDataJson, Encoding.UTF8, "application/json")
-			);
-
-			if (!postCustodian.IsSuccessStatusCode)
-			{
-				Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}");
-				throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}");
-			}
 			Console.WriteLine(JsonConvert.SerializeObject(formData));
+
 			var postPar = await HttpClient.PostAsync(
 				"https://localhost:7041/api/PAR",
 				new StringContent(formDataJson, Encoding.UTF8, "application/json")
@@ -164,6 +154,17 @@
 				throw new Exception($"PAR API failed with status code {postPar.StatusCode}");
 				string responseText = await postPar.Content.ReadAsStringAsync();
 				throw new Exception($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
+			}
+			// Send Custodian data request
+			var postCustodian = await HttpClient.PostAsync(
+				"https://localhost:7041/api/Custodian",
+				new StringContent(custodianDataJson, Encoding.UTF8, "application/json")
+			);
+
+			if (!postCustodian.IsSuccessStatusCode)
+			{
+				Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}");
+				throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}");
 			}
 
 			if (postPar.IsSuccessStatusCode && postCustodian.IsSuccessStatusCode)
@@ -177,11 +178,7 @@
 				throw new Exception("Missing required fields. Please fill out all fields correctly.");
 			}
 
-			else
-			{
-				Logger.LogError("Submission failed.");
-				throw new Exception("Submission failed.");
-			}
+			throw new Exception("Missing required fields. Please fill out all fields correctly.");
 		}
 		catch (HttpRequestException ex)
 		{
