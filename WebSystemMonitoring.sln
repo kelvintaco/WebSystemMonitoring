@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSystemMonitoring.Client"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSM.Models", "WSM.Models\WSM.Models.csproj", "{2E6C718E-B2C0-4EE6-AF48-4091F8274C3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIFinal", "..\APIFinal\APIFinal\APIFinal.csproj", "{D14C2183-E1FB-40A3-BF78-D524E3B29E55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIFinal", "..\API\APIFinal\APIFinal.csproj", "{9660BCD2-BC57-3D66-FE62-3FE65EB8C4E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,12 +29,15 @@ Global
 		{2E6C718E-B2C0-4EE6-AF48-4091F8274C3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E6C718E-B2C0-4EE6-AF48-4091F8274C3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E6C718E-B2C0-4EE6-AF48-4091F8274C3F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D14C2183-E1FB-40A3-BF78-D524E3B29E55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D14C2183-E1FB-40A3-BF78-D524E3B29E55}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D14C2183-E1FB-40A3-BF78-D524E3B29E55}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D14C2183-E1FB-40A3-BF78-D524E3B29E55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9660BCD2-BC57-3D66-FE62-3FE65EB8C4E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9660BCD2-BC57-3D66-FE62-3FE65EB8C4E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9660BCD2-BC57-3D66-FE62-3FE65EB8C4E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9660BCD2-BC57-3D66-FE62-3FE65EB8C4E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {42D6B744-6524-4F4D-9060-E115B4561C01}
 	EndGlobalSection
 EndGlobal

@@ -1,7 +1,23 @@
-﻿@page "/masterlist"
+﻿@using Radzen.Blazor;
+@using MatBlazor;
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using System.Globalization;
+@using Newtonsoft.Json.Linq;
+@using System.Net.Http;
+@using System.Net.Http.Json;
+@using System.Text;
+@using System.Text.Json;
+@page "/masterlist"
 @rendermode InteractiveAuto
 
 @inject HttpClient HttpClient
+@inject IModalService ModalService
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
 <h1>Master List</h1>
 
@@ -31,10 +47,10 @@ else
     <div class="row">
         <div class="col-md-6">
             <label for="Code">Code</label>
-            <select id="Code" class="form-control form-conrol-sm">
-                <option value="">Select Item Code</option>
-                
-            </select>
+            <RadzenFieldset>
+                <RadzenLabel Text="ParID" />
+                <RadzenDropDownDataGrid @bind-Value="SelectedPar" Data="ParIDList" AllowClear="true" AllowFiltering="true" Placeholder="Select an ID" Style="position: absolute;margin-bottom:20px" />
+            </RadzenFieldset>
         </div>
         <div class="col-md-6">
             <label for="formtype">Form Type</label>
@@ -47,13 +63,20 @@ else
             </select>
         </div>
     </div>
-    <button class="btn btn-primary mt-2">Print</button>
+    <button class="btn btn-primary mt-2" @onclick="@(()=>ModalService.Show<FormDialog>("Modal"))">Confirm</button>
 </div>
 
+<CascadingBlazoredModal></CascadingBlazoredModal>
 @code {
     private List<PAR>? TransactList;
+    private List<string>? ParIDList;
+
+    private string? SelectedPar;
     private bool IsLoading = true;
     private RadzenDataGrid<PAR> grid;
+
+    private string? AdditionalDetails;
+    //private MatDialog dialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,7 +91,26 @@ else
         {
             TransactList = null;
         }
+        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
+        if (paridresponse.IsSuccessStatusCode)
+        {
+            var json = await paridresponse.Content.ReadAsStringAsync();
+            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+        }
         IsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
+    // private async Task ShowModal()
+    // {
+    //     var parameters = new ModalParameters();
+    //     parameters.Add("AdditionalDetails", AdditionalDetails);
+
+    //     var modal = ModalService.Show<FormDialog>("Confirm Details", parameters);
+    //     var result = await modal.Result;
+
+    //     if (!result.Cancelled)
+    //     {
+    //         AdditionalDetails = result.Data.ToString();
+    //     }
+    // }
 }

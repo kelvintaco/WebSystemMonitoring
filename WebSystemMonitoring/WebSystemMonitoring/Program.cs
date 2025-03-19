@@ -1,3 +1,6 @@
+using Blazored.Modal;
+using MatBlazor;
+using Radzen;
 using WebSystemMonitoring.Client.Pages;
 using WebSystemMonitoring.Components;
 
@@ -11,6 +14,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped<DialogService>();
+builder.Services.AddMatBlazor();
+builder.Services.AddBlazoredModal();
 
 var app = builder.Build();
 

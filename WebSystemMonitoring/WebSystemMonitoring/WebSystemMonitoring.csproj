@@ -7,9 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\APIFinal\APIFinal\APIFinal.csproj" />
     <ProjectReference Include="..\..\WSM.Models\WSM.Models.csproj" />
     <ProjectReference Include="..\WebSystemMonitoring.Client\WebSystemMonitoring.Client.csproj" />
+    <PackageReference Include="Blazored.Modal" Version="7.3.1" />
+    <PackageReference Include="MatBlazor" Version="2.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.11" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Radzen.Blazor" Version="6.1.6" />
