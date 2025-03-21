@@ -8,6 +8,8 @@
 @using System.Net.Http.Json;
 @using System.Text;
 @using System.Text.Json;
+@using OfficeOpenXml;
+@using System.IO
 @page "/masterlist"
 @rendermode InteractiveAuto
 
@@ -54,29 +56,28 @@ else
         </div>
         <div class="col-md-6">
             <label for="formtype">Form Type</label>
-            <select id="formtype" class="form-control form-conrol-sm">
-                <option value="">Select Form Type</option>
-                <option value="PAR">PAR</option>
-                <option value="ICS">ICS</option>
-                <option value="Surrender">Surrender</option>
-                <option value="Transfer">Transfer</option>
-            </select>
+            <RadzenFieldset>
+                <RadzenLabel Text="Form Type" />
+                <RadzenDropDownDataGrid @bind-Value="SelectedFormType" Data="FormTypeList" AllowClear="false" AllowFiltering="false" Placeholder="Select a Form Type" Style="position: absolute;margin-bottom:20px" />
+            </RadzenFieldset>
         </div>
     </div>
-    <button class="btn btn-primary mt-2" @onclick="@(()=>ModalService.Show<FormDialog>("Modal"))">Confirm</button>
+    <button class="btn btn-primary mt-2" @onclick="ShowModal">Confirm</button>
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
 @code {
     private List<PAR>? TransactList;
     private List<string>? ParIDList;
+    private List<string>? FormTypeList = new List<string> { "PAR", "ICS", "Surrender", "Transfer" };
 
     private string? SelectedPar;
+	private string? SelectedFormType;
+
     private bool IsLoading = true;
     private RadzenDataGrid<PAR> grid;
 
     private string? AdditionalDetails;
-    //private MatDialog dialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,17 +101,61 @@ else
         IsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
-    // private async Task ShowModal()
-    // {
-    //     var parameters = new ModalParameters();
-    //     parameters.Add("AdditionalDetails", AdditionalDetails);
+    private void ShowModal()
+    {
+		if (SelectedFormType == "PAR")
+		{
+            GenerateParFile();
+		}
+		if (SelectedFormType == "ICS")
+		{
+			ModalService.Show<ICSModal>("");
+		}
+        if (SelectedFormType == "Surrender")
+        {
+            ModalService.Show<SurModal>("");
+        }
+        if (SelectedFormType == "Transfer")
+        {
+            ModalService.Show<TransModal>("");
+        }
+    }
+    private void GenerateParFile()
+    {
+        var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
+        if (selectedPar == null) return;
 
-    //     var modal = ModalService.Show<FormDialog>("Confirm Details", parameters);
-    //     var result = await modal.Result;
+        var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
+        var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
 
-    //     if (!result.Cancelled)
-    //     {
-    //         AdditionalDetails = result.Data.ToString();
-    //     }
-    // }
+        var existingFile = new System.IO.FileInfo(existingFilePath);
+        var newFile = new System.IO.FileInfo(newFilePath);
+
+        if (!existingFile.Exists)
+        {
+            Console.WriteLine("Template file not found!");
+            return;
+        }
+        using (var package = new ExcelPackage(existingFile))
+        {
+            var worksheet = package.Workbook.Worksheets["PAR"];
+            if (worksheet == null)
+            {
+                Console.WriteLine("Worksheet 'PAR' not found!");
+                return;
+            }
+
+            worksheet.Cells["F6"].Value = selectedPar.ParID;
+            worksheet.Cells["E9"].Value = selectedPar.ItemCode;
+            worksheet.Cells["C9"].Value = selectedPar.ItemName;
+            worksheet.Cells["E40"].Value = selectedPar.ParName;
+            //worksheet.Cells[""].Value = selectedPar.DprName;
+            //worksheet.Cells[""].Value = selectedPar.ParDate;
+            worksheet.Cells["C6"].Value = selectedPar.refNo;
+            worksheet.Cells["A9"].Value = selectedPar.ParQty;
+
+            // Save to a new file
+            package.SaveAs(newFile);
+        }
+    }
 }

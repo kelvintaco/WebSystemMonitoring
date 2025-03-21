@@ -15,6 +15,7 @@ namespace APIFinal.Models
         public string DprName { get; set; }
         public string ParDate { get; set; }
         public int refNo { get; set; }
+        public float value { get; set; }
         public int ParQty { get; set; }
     }
 }
