@@ -1,9 +1,145 @@
-﻿@rendermode InteractiveAuto
+﻿@using OfficeOpenXml
+@using System.IO
+@using Radzen.Blazor
+@rendermode InteractiveAuto
 
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
 <h1>Surrender Details</h1>
 
+<div>
+    <label for="condition">What is the condition?</label>
+    <RadzenDropDown @bind-Value="Condition" Data="conditions" TextProperty="Text" ValueProperty="Value" />
+</div>
+
+<div>
+    <label for="itemName">Item Name</label>
+    <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="true" AllowFiltering="true" Placeholder="Select an Item" Style="position: absolute;margin-bottom:20px" />
+</div>
+
+<div>
+    <label for="reason">Reason</label>
+    <InputText @bind-Value="Reason" />
+</div>
+
+<div>
+    <label for="conditionSpecification">Specify the condition</label>
+    <InputText @bind-Value="ConditionSpecification" />
+</div>
+
+<button type="submit" class="btn btn-primary mt-2" @onclick="SaveToExcel">Submit</button>
 
 @code {
+    private List<string>? conditions = new List<string> { "Servicable", "Nonservicable" };
+    private List<string>? ItemList;
 
+    private string? SelectedItem;
+    private string? Reason;
+    private string? Condition;
+    private string? ConditionSpecification;
+
+    private int ItemCode;
+    private string? ItemName;
+    private double Price;
+	private int isonBorrow;
+	private int isnotonBorrow;
+	private bool Servicable;
+	private bool NonServ;
+	private string? Place;
+    
+	private string? NonservCode;
+	private string? disposalName;
+	private string? Description;
+    private DateOnly disposalDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
+        if (response.IsSuccessStatusCode)
+        {
+            ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
+        }
+    }
+
+    private async Task SaveToExcel()
+    {
+
+        if (Condition == "Nonservicable")
+        {
+            // Fetch the item details
+            var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{SelectedItem}");
+            if (itemResponse.IsSuccessStatusCode)
+            {
+                var items = await itemResponse.Content.ReadFromJsonAsync<List<Items>>();
+                if (items != null && items.Count > 0)
+                {
+                    var selectedItemDetails = items.FirstOrDefault();
+
+                    // Create the ItemDisposal object
+                    var itemDisposal = new ItemDisposal
+                        {
+                            NonServCode = selectedItemDetails.ItemCode.ToString(),
+                            disposalName = SelectedItem,
+                            Description = Reason,
+                            disposalDate = DateOnly.FromDateTime(DateTime.Now)
+                        };
+
+                    // Insert into ItemDisposal table
+                    var addResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ItemDisposal", itemDisposal);
+                    if (addResponse.IsSuccessStatusCode)
+                    {
+                        // Delete the item
+                        var deleteResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/Item/byItemName/{SelectedItem}");
+                        if (deleteResponse.IsSuccessStatusCode)
+                        {
+                            Console.WriteLine("Item successfully deleted.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Failed to delete item.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to insert into ItemDisposal.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Item details not found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Failed to fetch item details.");
+            }
+        }
+    }
+
+    // private async Task<string> GenerateNonServCode()
+    // {
+    //     var random = new Random();
+    //     var existingCSTCodes = await GetExistingCSTCodes();
+
+    //     while (true)
+    //     {
+    //         var randomCode = $"CST{random.Next(100, 1000)}";
+    //         if (!existingCSTCodes.Contains(randomCode))
+    //         {
+    //             return randomCode;
+    //         }
+    //     }
+    // }
+    // private async Task<List<string>> GetExistingCSTCodes()
+    // {
+    //     var response = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
+    //     var json = await response.Content.ReadAsStringAsync();
+    //     var existingCSTCodes = JsonConvert.DeserializeObject<List<string>>(json);
+    //     return existingCSTCodes;
+    // }
 }

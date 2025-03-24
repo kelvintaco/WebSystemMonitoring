@@ -1,5 +1,14 @@
-﻿@page "/formdialog"
+﻿@using OfficeOpenXml;
+@using System.IO
+@using Radzen.Blazor;
 @rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
 <h1>ICS Details</h1>
 
