@@ -105,7 +105,14 @@ else
     {
 		if (SelectedFormType == "PAR")
 		{
-            GenerateParFile();
+            //GenerateParFile();
+            if (SelectedFormType == "PAR")
+            {
+                var parameters = new ModalParameters();
+                parameters.Add("SelectedPar", SelectedPar);
+
+                ModalService.Show<PARModal>("PAR Details", parameters);
+            }
 		}
 		if (SelectedFormType == "ICS")
 		{
@@ -120,42 +127,43 @@ else
             ModalService.Show<TransModal>("");
         }
     }
-    private void GenerateParFile()
-    {
-        var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
-        if (selectedPar == null) return;
+   //  private void GenerateParFile()
+   //  {
+   //      var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
+   //      if (selectedPar == null) return;
 
-        var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
-        var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
+   //      var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
+   //      var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
 
-        var existingFile = new System.IO.FileInfo(existingFilePath);
-        var newFile = new System.IO.FileInfo(newFilePath);
+   //      var existingFile = new System.IO.FileInfo(existingFilePath);
+   //      var newFile = new System.IO.FileInfo(newFilePath);
 
-        if (!existingFile.Exists)
-        {
-            Console.WriteLine("Template file not found!");
-            return;
-        }
-        using (var package = new ExcelPackage(existingFile))
-        {
-            var worksheet = package.Workbook.Worksheets["PAR"];
-            if (worksheet == null)
-            {
-                Console.WriteLine("Worksheet 'PAR' not found!");
-                return;
-            }
+   //      if (!existingFile.Exists)
+   //      {
+   //          Console.WriteLine("Template file not found!");
+   //          return;
+   //      }
+   //      using (var package = new ExcelPackage(existingFile))
+   //      {
+   //          var worksheet = package.Workbook.Worksheets["PAR"];
+   //          if (worksheet == null)
+   //          {
+   //              Console.WriteLine("Worksheet 'PAR' not found!");
+   //              return;
+   //          }
 
-            worksheet.Cells["F6"].Value = selectedPar.ParID;
-            worksheet.Cells["E9"].Value = selectedPar.ItemCode;
-            worksheet.Cells["C9"].Value = selectedPar.ItemName;
-            worksheet.Cells["E40"].Value = selectedPar.ParName;
-            //worksheet.Cells[""].Value = selectedPar.DprName;
-            //worksheet.Cells[""].Value = selectedPar.ParDate;
-            worksheet.Cells["C6"].Value = selectedPar.refNo;
-            worksheet.Cells["A9"].Value = selectedPar.ParQty;
+   //          worksheet.Cells["F6"].Value = selectedPar.ParID;
+   //          worksheet.Cells["E9"].Value = selectedPar.ItemCode;
+   //          worksheet.Cells["C9"].Value = selectedPar.ItemName;
+   //          worksheet.Cells["E40"].Value = selectedPar.ParName;
+			// worksheet.Cells["C36"].Value = selectedPar.ParDate;
+   //          worksheet.Cells["C35"].Value = selectedPar.refNo;
+   //          worksheet.Cells["A9"].Value = selectedPar.ParQty;
 
-            // Save to a new file
-            package.SaveAs(newFile);
-        }
-    }
+   //          worksheet.Cells["D47"].Value = "Juan Dela Cruz";
+
+   //          // Save to a new file
+   //          package.SaveAs(newFile);
+   //      }
+   //  }
 }
