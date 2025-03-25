@@ -1,5 +1,6 @@
 using Blazored.Modal;
 using MatBlazor;
+using Microsoft.Extensions.FileProviders;
 using Radzen;
 using WebSystemMonitoring.Client.Pages;
 using WebSystemMonitoring.Components;
@@ -31,6 +32,13 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "../WebSystemMonitoring.Client/wwwroot")),
+    RequestPath = ""
+});
 
 app.UseHttpsRedirection();
 

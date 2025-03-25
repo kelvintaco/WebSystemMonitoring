@@ -105,14 +105,10 @@ else
     {
 		if (SelectedFormType == "PAR")
 		{
-            //GenerateParFile();
-            if (SelectedFormType == "PAR")
-            {
-                var parameters = new ModalParameters();
-                parameters.Add("SelectedPar", SelectedPar);
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
 
-                ModalService.Show<PARModal>("PAR Details", parameters);
-            }
+            ModalService.Show<PARModal>("PAR Details", parameters);
 		}
 		if (SelectedFormType == "ICS")
 		{
@@ -120,7 +116,10 @@ else
 		}
         if (SelectedFormType == "Surrender")
         {
-            ModalService.Show<SurModal>("");
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
+
+            ModalService.Show<SurModal>("Surrender Details", parameters);
         }
         if (SelectedFormType == "Transfer")
         {

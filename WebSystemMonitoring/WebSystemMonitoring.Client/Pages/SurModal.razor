@@ -3,23 +3,35 @@
 @using Radzen.Blazor
 @rendermode InteractiveAuto
 
+@inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+<script src="https://localhost:7041/static/site.js"></script>
 
 <h1>Surrender Details</h1>
 
 <div>
     <label for="condition">What is the condition?</label>
-    <RadzenDropDown @bind-Value="Condition" Data="conditions" TextProperty="Text" ValueProperty="Value" />
+    <RadzenDropDown @bind-Value="Condition" Data="conditions"/>
 </div>
 
 <div>
-    <label for="itemName">Item Name</label>
-    <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="true" AllowFiltering="true" Placeholder="Select an Item" Style="position: absolute;margin-bottom:20px" />
+    <h4>Classification</h4>
+    <RadzenCheckBox @bind-Value="IsClassification1" Text="Office Equipment" />
+    <RadzenCheckBox @bind-Value="IsClassification2" Text="Furniture & Fixtures" />
+    <RadzenCheckBox @bind-Value="IsClassification3" Text="IT Equipment" />
+    <RadzenCheckBox @bind-Value="IsClassification4" Text="Other Machinery & Equipment" />
+    <RadzenCheckBox @bind-Value="IsClassification5" Text="Communication Equipment" />
+</div>
+
+<div>
+    <h4>Distribution of Copies</h4>
+    <RadzenCheckBox @bind-Value="CopiesEndUser" Text="End User" />
+    <RadzenCheckBox @bind-Value="CopiesGSO" Text="GSO" />
 </div>
 
 <div>
@@ -32,114 +44,152 @@
     <InputText @bind-Value="ConditionSpecification" />
 </div>
 
+<div>
+    <label for="quantity">Quantity</label>
+    <InputText @bind-Value="Quantity" />
+</div>
+
 <button type="submit" class="btn btn-primary mt-2" @onclick="SaveToExcel">Submit</button>
 
 @code {
+    [Parameter] public string SelectedPar { get; set; }
+
     private List<string>? conditions = new List<string> { "Servicable", "Nonservicable" };
     private List<string>? ItemList;
 
-    private string? SelectedItem;
+    private Items SelectedItemData;
+    private PAR SelectedItemPARData;
+    private double Price;
+
+    private string SelectedItem { get; set; }
     private string? Reason;
     private string? Condition;
     private string? ConditionSpecification;
+    private string? Quantity;
 
-    private int ItemCode;
-    private string? ItemName;
-    private double Price;
-	private int isonBorrow;
-	private int isnotonBorrow;
-	private bool Servicable;
-	private bool NonServ;
-	private string? Place;
-    
-	private string? NonservCode;
-	private string? disposalName;
-	private string? Description;
+    private bool IsClassification1;
+    private bool IsClassification2;
+    private bool IsClassification3;
+    private bool IsClassification4;
+    private bool IsClassification5;
+
+    private bool CopiesEndUser;
+    private bool CopiesGSO;
+
+    private string? NonservCode;
+    private string? disposalName;
+    private string? Description;
     private DateOnly disposalDate;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
-        if (response.IsSuccessStatusCode)
+        if (!string.IsNullOrEmpty(SelectedPar))
         {
-            ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
+            var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+            if (parResponse.IsSuccessStatusCode)
+            {
+                SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+
+                if (SelectedItemPARData != null)
+                {
+                    var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemByName/{SelectedItemPARData.ItemName}");
+                    if (itemResponse.IsSuccessStatusCode)
+                    {
+                        SelectedItemData = await itemResponse.Content.ReadFromJsonAsync<Items>();
+
+                        var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemPARData.ItemName}");
+                        if (priceResponse.IsSuccessStatusCode)
+                        {
+                            Price = await priceResponse.Content.ReadFromJsonAsync<double>();
+                        }
+                    }
+                }
+            }
         }
     }
 
     private async Task SaveToExcel()
     {
-
-        if (Condition == "Nonservicable")
+        if (Condition == "Nonservicable" && SelectedItemPARData != null)
         {
-            // Fetch the item details
-            var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{SelectedItem}");
-            if (itemResponse.IsSuccessStatusCode)
+            // Insert into ItemDisposal table
+            var itemDisposal = new ItemDisposal
             {
-                var items = await itemResponse.Content.ReadFromJsonAsync<List<Items>>();
-                if (items != null && items.Count > 0)
-                {
-                    var selectedItemDetails = items.FirstOrDefault();
+                NonServCode = SelectedItemPARData.ItemCode.ToString(),
+                disposalName = SelectedItemPARData.ItemName,
+                Description = Reason,
+                disposalDate = DateOnly.FromDateTime(DateTime.Now)
+            };
 
-                    // Create the ItemDisposal object
-                    var itemDisposal = new ItemDisposal
-                        {
-                            NonServCode = selectedItemDetails.ItemCode.ToString(),
-                            disposalName = SelectedItem,
-                            Description = Reason,
-                            disposalDate = DateOnly.FromDateTime(DateTime.Now)
-                        };
-
-                    // Insert into ItemDisposal table
-                    var addResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ItemDisposal", itemDisposal);
-                    if (addResponse.IsSuccessStatusCode)
-                    {
-                        // Delete the item
-                        var deleteResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/Item/byItemName/{SelectedItem}");
-                        if (deleteResponse.IsSuccessStatusCode)
-                        {
-                            Console.WriteLine("Item successfully deleted.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Failed to delete item.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Failed to insert into ItemDisposal.");
-                    }
-                }
-                else
+            var addResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ItemDisposal", itemDisposal);
+            if (addResponse.IsSuccessStatusCode)
+            {
+                var deleteResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/Item/byItemName/{SelectedItemPARData.ItemName}");
+                if (!deleteResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Item details not found.");
+                    Console.WriteLine("Failed to delete item.");
                 }
             }
             else
             {
-                Console.WriteLine("Failed to fetch item details.");
+                Console.WriteLine("Failed to insert into ItemDisposal.");
+                return;
+            }
+
+            // Prepare data for the server
+            var surrenderData = new SurrenderData
+            {
+                Quantity = Quantity,
+                ItemCode = SelectedItemPARData.ItemCode,
+                ItemName = SelectedItemPARData.ItemName,
+                ParDate = SelectedItemPARData.ParDate,
+                ParID = SelectedItemPARData.ParID,
+                Value = SelectedItemPARData.value,
+                Price = Price,
+                ParName = SelectedItemPARData.ParName,
+                Condition = Condition,
+                IsClassification1 = IsClassification1,
+                IsClassification2 = IsClassification2,
+                IsClassification3 = IsClassification3,
+                IsClassification4 = IsClassification4,
+                IsClassification5 = IsClassification5,
+                CopiesEndUser = CopiesEndUser,
+                CopiesGSO = CopiesGSO
+            };
+
+            // Call the server API to generate the Excel file
+            var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                Console.WriteLine("File generated and download triggered successfully.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to generate Excel file: {await response.Content.ReadAsStringAsync()}");
             }
         }
     }
 
-    // private async Task<string> GenerateNonServCode()
-    // {
-    //     var random = new Random();
-    //     var existingCSTCodes = await GetExistingCSTCodes();
-
-    //     while (true)
-    //     {
-    //         var randomCode = $"CST{random.Next(100, 1000)}";
-    //         if (!existingCSTCodes.Contains(randomCode))
-    //         {
-    //             return randomCode;
-    //         }
-    //     }
-    // }
-    // private async Task<List<string>> GetExistingCSTCodes()
-    // {
-    //     var response = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
-    //     var json = await response.Content.ReadAsStringAsync();
-    //     var existingCSTCodes = JsonConvert.DeserializeObject<List<string>>(json);
-    //     return existingCSTCodes;
-    // }
+    // Data transfer object to match the server
+    private class SurrenderData
+    {
+        public string Quantity { get; set; }
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+        public string ParDate { get; set; }
+        public string ParID { get; set; }
+        public double Value { get; set; }
+        public double Price { get; set; }
+        public string ParName { get; set; }
+        public string Condition { get; set; }
+        public bool IsClassification1 { get; set; }
+        public bool IsClassification2 { get; set; }
+        public bool IsClassification3 { get; set; }
+        public bool IsClassification4 { get; set; }
+        public bool IsClassification5 { get; set; }
+        public bool CopiesEndUser { get; set; }
+        public bool CopiesGSO { get; set; }
+    }
 }
