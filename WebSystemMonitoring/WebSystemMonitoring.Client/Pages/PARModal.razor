@@ -1,14 +1,16 @@
-﻿@using OfficeOpenXml;
+﻿@using OfficeOpenXml
 @using System.IO
-@using Radzen.Blazor;
+@using Radzen.Blazor
 @rendermode InteractiveAuto
 
+@inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+<script src="https://localhost:7041/static/site.js"></script>
 
 <h1>PAR Details</h1>
 
@@ -44,7 +46,7 @@
     private bool IsClassification2;
     private bool IsClassification3;
     private bool IsClassification4;
-	private bool IsClassification5;
+    private bool IsClassification5;
 
     private bool IsSourceOfFund1;
     private bool IsSourceOfFund2;
@@ -64,54 +66,71 @@
         }
     }
 
-    private void SaveToExcel()
+    private async Task SaveToExcel()
     {
-        var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
-        var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
-
-        var existingFile = new System.IO.FileInfo(existingFilePath);
-        var newFile = new System.IO.FileInfo(newFilePath);
-
-        if (!existingFile.Exists)
-        {
-            Console.WriteLine("Template file not found!");
-            return;
-        }
-
-        using (var package = new ExcelPackage(existingFile))
-        {
-            var worksheet = package.Workbook.Worksheets["PAR"];
-            if (worksheet == null)
+        // Prepare data for the server
+        var parData = new ParData
             {
-                Console.WriteLine("Worksheet 'PAR' not found!");
-                return;
-            }
+                ParID = SelectedParData?.ParID,
+                ItemCode = SelectedParData?.ItemCode ?? 0,
+                ItemName = SelectedParData?.ItemName,
+                ParName = SelectedParData?.ParName,
+                ParDate = SelectedParData?.ParDate,
+                RefNo = SelectedParData?.refNo ?? 0,
+                ParQty = SelectedParData?.ParQty ?? 0,
+                IsClassification1 = IsClassification1,
+                IsClassification2 = IsClassification2,
+                IsClassification3 = IsClassification3,
+                IsClassification4 = IsClassification4,
+                IsClassification5 = IsClassification5,
+                IsSourceOfFund1 = IsSourceOfFund1,
+                IsSourceOfFund2 = IsSourceOfFund2,
+                IsSourceOfFund3 = IsSourceOfFund3,
+                IsSourceOfFund4 = IsSourceOfFund4,
+                OtherSourceOfFund = OtherSourceOfFund
+            };
 
-            // Insert selected transaction data
-            if (SelectedParData != null)
+        // Call the server API to generate the Excel file
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-par", parData);
+        if (response.IsSuccessStatusCode)
+        {
+            var fileBytes = await response.Content.ReadAsByteArrayAsync();
+            try
             {
-                worksheet.Cells["F6"].Value = SelectedParData.ParID;
-                worksheet.Cells["E9"].Value = SelectedParData.ItemCode;
-                worksheet.Cells["C9"].Value = SelectedParData.ItemName;
-                worksheet.Cells["E40"].Value = SelectedParData.ParName;
-                worksheet.Cells["C36"].Value = SelectedParData.ParDate;
-                worksheet.Cells["C35"].Value = SelectedParData.refNo;
-                worksheet.Cells["A9"].Value = SelectedParData.ParQty;
+                await JSRuntime.InvokeVoidAsync("downloadFile", "PARData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                Console.WriteLine("File generated and download triggered successfully.");
             }
-
-            // Insert classification and source of fund values
-            if (IsClassification1) worksheet.Cells["A29"].Value = "/";
-            if (IsClassification2) worksheet.Cells["A30"].Value = "/";
-            if (IsClassification3) worksheet.Cells["A31"].Value = "/";
-            if (IsClassification4) worksheet.Cells["A32"].Value = "/";
-            if (IsClassification5) worksheet.Cells["A33"].Value = "/";
-
-            if (IsSourceOfFund1) worksheet.Cells["C2"].Value = "/";
-            if (IsSourceOfFund2) worksheet.Cells["C3"].Value = "/";
-            if (IsSourceOfFund3) worksheet.Cells["C4"].Value = "/";
-            if (IsSourceOfFund4) worksheet.Cells["C5"].Value = OtherSourceOfFund;
-
-            package.SaveAs(newFile);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to trigger download: {ex.Message}");
+            }
         }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Failed to generate Excel file. Status: {response.StatusCode}, Reason: {response.ReasonPhrase}, Content: '{errorContent}'");
+        }
+    }
+
+    // Data transfer object to match the server
+    private class ParData
+    {
+        public string? ParID { get; set; }
+        public int ItemCode { get; set; }
+        public string? ItemName { get; set; }
+        public string? ParName { get; set; }
+        public string? ParDate { get; set; }
+        public int RefNo { get; set; }
+        public int ParQty { get; set; }
+        public bool IsClassification1 { get; set; }
+        public bool IsClassification2 { get; set; }
+        public bool IsClassification3 { get; set; }
+        public bool IsClassification4 { get; set; }
+        public bool IsClassification5 { get; set; }
+        public bool IsSourceOfFund1 { get; set; }
+        public bool IsSourceOfFund2 { get; set; }
+        public bool IsSourceOfFund3 { get; set; }
+        public bool IsSourceOfFund4 { get; set; }
+        public string? OtherSourceOfFund { get; set; }
     }
 }
