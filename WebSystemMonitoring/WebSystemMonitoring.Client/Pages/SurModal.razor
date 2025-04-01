@@ -169,6 +169,17 @@
             {
                 Console.WriteLine($"Failed to generate Excel file: {await response.Content.ReadAsStringAsync()}");
             }
+
+			var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+			if (!deleteParResponse.IsSuccessStatusCode)
+			{
+				Console.WriteLine("Failed to delete PAR.");
+			}
+            else
+			{
+				Console.WriteLine("PAR deleted successfully.");
+			}
+
         }
     }
 

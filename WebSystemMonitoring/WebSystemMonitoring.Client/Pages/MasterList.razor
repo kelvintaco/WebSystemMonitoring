@@ -30,7 +30,7 @@
 }
 else
 {
-    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" PageSize="10">
+    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true"  PageSize="10">
         <Columns>
             <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
             <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="ItemCode" />

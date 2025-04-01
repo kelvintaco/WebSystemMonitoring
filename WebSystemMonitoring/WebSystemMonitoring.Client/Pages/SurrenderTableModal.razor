@@ -1,0 +1,38 @@
+﻿@using Radzen.Blazor;
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h1>SurrenderTableModal</h1>
+
+@if (IsLoading)
+{
+    <div class="spinner-border" role="status">
+    </div>
+}
+else
+{
+    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransferList" TItem="Transfer" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="Transfer" Property="ParID" Title="ParID" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="ItemCode" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ItemName" Title="ItemName" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ParName" Title="ParName" />
+            <RadzenDataGridColumn TItem="Transfer" Property="DprName" Title="DprName" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ParDate" Title="ParDate" />
+            <RadzenDataGridColumn TItem="Transfer" Property="refNo" Title="RefNo" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ParQty" Title="ParQty" />
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    private bool IsLoading = true;
+    private RadzenDataGrid<Transfer> grid;
+	private List<Transfer>? TransferList;
+}
