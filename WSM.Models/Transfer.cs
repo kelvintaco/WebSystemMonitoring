@@ -11,7 +11,7 @@ namespace APIFinal.Models
         public int ItemCode { get; set; }
         public string Description { get; set; }
         [ForeignKey ("CstCode")]
-        public int CstCode { get; set; }
+        public string CstCode { get; set; }
         public string Name { get; set; }
         public DateOnly dateTransferred { get; set; }
         public string Condition { get; set; }

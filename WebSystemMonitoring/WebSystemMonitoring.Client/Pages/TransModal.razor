@@ -18,7 +18,7 @@
     <RadzenTextBox @bind-Value="FundCluster" Placeholder="Enter Fund Cluster" />
     <RadzenTextBox @bind-Value="FromName" Placeholder="From Name" />
     <RadzenTextBox @bind-Value="ToName" Placeholder="To Name" />
-	<RadzenTextBox @bind-Value="ItemCondition" Placeholder="Item Condition" />
+    <RadzenTextBox @bind-Value="ItemCondition" Placeholder="Item Condition" />
 
     <RadzenCheckBox @bind-Value="TransferType1" />
     <label>Transfer Type 1</label>
@@ -169,7 +169,7 @@
 
         var transfer = new TransferData
 			{
-				PtrId = await GeneratePrtId(),
+            //PtrId = await GeneratePrtId(),
 			    ItemCode = SelectedParData.ItemCode,
 			    Description = SelectedParData.ItemName,
                 CstCode = SelectedCstData?.CSTCode,
@@ -185,8 +185,27 @@
         {
             Console.WriteLine("Transfer data inserted successfully.");
 
+            var transferexcel = new TransferData
+            {
+                    ItemCode = SelectedParData.ItemCode,
+                    Description = SelectedParData.ItemName,
+                    CstCode = SelectedCstData.CSTCode,
+                    Name = SelectedParData.ParName,
+                    dateTransferred = DateOnly.FromDateTime(DateTime.Now),
+                    Condition = ItemCondition,
+                    receiveName = ReceivedBy,
+                    TransferType = transferType,
+                    FundCluster = FundCluster,
+                    FromName = FromName,
+                    ToName = ToName,
+                    ReasonForTransfer = ReasonForTransfer,
+                    ApprovedBy = ApprovedBy,            
+                    ReleasedBy = ReleasedBy,            
+                    Designation = Designation
+            };
+
             // Generate Excel file
-            var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-transfer", transfer);
+            var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-transfer", transferexcel);
             if (excelResponse.IsSuccessStatusCode)
             {
                 var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
@@ -213,28 +232,28 @@
         }
     }
 
-    private async Task<int> GeneratePrtId()
-    {
-        var random = new Random();
-        var existingPrtCodes = await GetExistingPrtId();
+    // private async Task<int> GeneratePrtId()
+    // {
+    //     var random = new Random();
+    //     var existingPrtCodes = await GetExistingPrtId();
 
-        while (true)
-        {
-            var randomCode = random.Next(100, 1000);
-            if (!existingPrtCodes.Contains(randomCode))
-            {
-                return randomCode;
-            }
-        }
-    }
+    //     while (true)
+    //     {
+    //         var randomCode = random.Next(100, 1000);
+    //         if (!existingPrtCodes.Contains(randomCode))
+    //         {
+    //             return randomCode;
+    //         }
+    //     }
+    // }
 
-    private async Task<List<int>> GetExistingPrtId()
-    {
-        var response = await HttpClient.GetAsync("https://localhost:7041/api/Transfer/GetLatest");
-        var json = await response.Content.ReadAsStringAsync();
-        var existingPrtCodes = JsonConvert.DeserializeObject<List<int>>(json);
-        return existingPrtCodes;
-    }
+    // private async Task<List<int>> GetExistingPrtId()
+    // {
+    //     var response = await HttpClient.GetAsync("https://localhost:7041/api/Transfer/GetLatest");
+    //     var json = await response.Content.ReadAsStringAsync();
+    //     var existingPrtCodes = JsonConvert.DeserializeObject<List<int>>(json);
+    //     return existingPrtCodes;
+    // }
 
     private string GetTransferType()
     {
