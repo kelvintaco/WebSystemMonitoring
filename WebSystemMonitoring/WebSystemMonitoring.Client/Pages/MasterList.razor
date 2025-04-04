@@ -45,6 +45,14 @@ else
 }
 
 <div class="mt-4 border p-4">
+    <h5>Other Tables</h5>
+    <div class="column">
+        <button class="btn btn-primary mt-2" @onclick="ShowTransfer">Transfer</button>
+        <button class="btn btn-primary mt-2" @onclick="ShowSurrender">Surrender</button>
+    </div>
+</div>
+
+<div class="mt-4 border p-4">
     <h4>Print Forms</h4>
     <div class="row">
         <div class="col-md-6">
@@ -72,7 +80,7 @@ else
     private List<string>? FormTypeList = new List<string> { "PAR", "ICS", "Surrender", "Transfer" };
 
     private string? SelectedPar;
-	private string? SelectedFormType;
+    private string? SelectedFormType;
 
     private bool IsLoading = true;
     private RadzenDataGrid<PAR> grid;
@@ -103,17 +111,17 @@ else
     }
     private void ShowModal()
     {
-		if (SelectedFormType == "PAR")
-		{
+        if (SelectedFormType == "PAR")
+        {
             var parameters = new ModalParameters();
             parameters.Add("SelectedPar", SelectedPar);
 
             ModalService.Show<PARModal>("PAR Details", parameters);
-		}
-		if (SelectedFormType == "ICS")
-		{
-			ModalService.Show<ICSModal>("");
-		}
+        }
+        if (SelectedFormType == "ICS")
+        {
+            ModalService.Show<ICSModal>("");
+        }
         if (SelectedFormType == "Surrender")
         {
             var parameters = new ModalParameters();
@@ -123,13 +131,30 @@ else
         }
         if (SelectedFormType == "Transfer")
         {
-			var parameters = new ModalParameters();
-			parameters.Add("SelectedPar", SelectedPar);
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
 
             ModalService.Show<TransModal>("Transfer Details", parameters);
         }
     }
-   //  private void GenerateParFile()
+
+    private void ShowSurrender()
+    {
+        var options = new ModalOptions()
+            {
+                Class = "custom-large-modal"
+            };
+        ModalService.Show<SurrenderTableModal>("Surrender Records", options);
+    }
+    private void ShowTransfer()
+    {
+        var options = new ModalOptions()
+            {
+                Class = "custom-large-modal"
+            };
+        ModalService.Show<TransferTableModal>("Transfer Records", options);
+    }
+    //  private void GenerateParFile()
    //  {
    //      var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
    //      if (selectedPar == null) return;

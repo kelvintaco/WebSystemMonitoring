@@ -116,3 +116,13 @@ h1:focus {
         .pardatagrid .rz-data-grid-header .rz-sort.desc {
             color: #667;
         }
+
+.custom-large-modal .modal-dialog {
+    max-width: 700px;
+    width: 70%;
+    height: 100vh;
+}
+
+.custom-large-modal .modal-content {
+    height: 85%; 
+}

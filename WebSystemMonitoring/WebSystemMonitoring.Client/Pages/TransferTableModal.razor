@@ -1,0 +1,56 @@
+﻿@using Radzen.Blazor;
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h1>TransferTableModal</h1>
+
+@if (IsLoading)
+{
+    <div class="spinner-border" role="status">
+    </div>
+}
+else
+{
+    <RadzenDataGrid class="transfermodal" @ref="grid" Data="@TransferList" TItem="Transfer" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="Transfer" Property="PrtId" Title="PrtId" />
+            <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="ItemCode" />
+            <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
+            <RadzenDataGridColumn TItem="Transfer" Property="CstCode" Title="CstCode" />
+            <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
+            <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="dateTransferred" />
+            <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
+            <RadzenDataGridColumn TItem="Transfer" Property="receiveName" Title="receiveName" />
+            <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="TransferType" />
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    private bool IsLoading = true;
+    private RadzenDataGrid<Transfer> grid;
+    private List<Transfer>? TransferList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/Transfer");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            TransferList = JsonConvert.DeserializeObject<List<Transfer>>(json);
+        }
+        else
+        {
+            TransferList = null;
+        }
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+}
