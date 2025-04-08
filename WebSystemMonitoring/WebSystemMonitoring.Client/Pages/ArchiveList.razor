@@ -24,7 +24,7 @@ else
         </Columns>
     </RadzenDataGrid>
     <p></p>
-	<p></p>
+    <p></p>
     <p></p>
 
     <h1>Item Disposal</h1>
@@ -46,11 +46,9 @@ else
     private RadzenDataGrid<ItemDisposal> disposalgrid;
 
     protected override async Task OnInitializedAsync()
-	{
-        await Task.Delay(1000);
+    {
+        await Task.Delay(500);
         IsLoading = false;
-        await InvokeAsync(StateHasChanged);
-
         var Archiveresponse = await HttpClient.GetAsync("https://localhost:7041/api/ArchivedTransactions");
         if (Archiveresponse.IsSuccessStatusCode)
         {

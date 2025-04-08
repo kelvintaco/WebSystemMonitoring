@@ -81,6 +81,14 @@
     private string? Description;
     private DateOnly disposalDate;
 
+    private string? SurName;
+    private string? PrpName;
+    private string? DprName;
+    private string? archiveDate;
+    private double Value;
+    private string? ItemCond;
+    private int SurQTY;
+
     protected override async Task OnInitializedAsync()
     {
         if (!string.IsNullOrEmpty(SelectedPar))
@@ -135,52 +143,71 @@
                 Console.WriteLine("Failed to insert into ItemDisposal.");
                 return;
             }
+        }
 
-            // Prepare data for the server
-            var surrenderData = new SurrenderData
+        // Prepare data for the server
+        var surrenderData = new SurrenderData
+        {
+            Quantity = Quantity,
+            ItemCode = SelectedItemPARData.ItemCode,
+            ItemName = SelectedItemPARData.ItemName,
+            ParDate = SelectedItemPARData.ParDate,
+            ParID = SelectedItemPARData.ParID,
+            Value = SelectedItemPARData.value,
+            Price = Price,
+            ParName = SelectedItemPARData.ParName,
+            Condition = Condition,
+            IsClassification1 = IsClassification1,
+            IsClassification2 = IsClassification2,
+            IsClassification3 = IsClassification3,
+            IsClassification4 = IsClassification4,
+            IsClassification5 = IsClassification5,
+            CopiesEndUser = CopiesEndUser,
+            CopiesGSO = CopiesGSO
+        };
+
+        // Call the server API to generate the Excel file
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
+        if (response.IsSuccessStatusCode)
+        {
+            var fileBytes = await response.Content.ReadAsByteArrayAsync();
+            await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            Console.WriteLine("File generated and download triggered successfully.");
+        }
+        else
+        {
+            Console.WriteLine($"Failed to generate Excel file: {await response.Content.ReadAsStringAsync()}");
+        }
+        var archiving = new SurrenderData
             {
-                Quantity = Quantity,
-                ItemCode = SelectedItemPARData.ItemCode,
-                ItemName = SelectedItemPARData.ItemName,
-                ParDate = SelectedItemPARData.ParDate,
-                ParID = SelectedItemPARData.ParID,
+                SurName = SelectedItemPARData.ParName,
+                PrpName = SelectedItemPARData.ItemName,
+                DprName = SelectedItemPARData.DprName,
+                archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
                 Value = SelectedItemPARData.value,
-                Price = Price,
-                ParName = SelectedItemPARData.ParName,
-                Condition = Condition,
-                IsClassification1 = IsClassification1,
-                IsClassification2 = IsClassification2,
-                IsClassification3 = IsClassification3,
-                IsClassification4 = IsClassification4,
-                IsClassification5 = IsClassification5,
-                CopiesEndUser = CopiesEndUser,
-                CopiesGSO = CopiesGSO
+                ItemCond = Condition,
+                SurQTY = SelectedItemPARData.ParQty
             };
 
-            // Call the server API to generate the Excel file
-            var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
-            if (response.IsSuccessStatusCode)
-            {
-                var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                Console.WriteLine("File generated and download triggered successfully.");
-            }
-            else
-            {
-                Console.WriteLine($"Failed to generate Excel file: {await response.Content.ReadAsStringAsync()}");
-            }
-
-			var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-			if (!deleteParResponse.IsSuccessStatusCode)
-			{
-				Console.WriteLine("Failed to delete PAR.");
-			}
-            else
-			{
-				Console.WriteLine("PAR deleted successfully.");
-			}
-
+        var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
+        if (!archiveResponse.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Failed to fetch Item data. Status: {archiveResponse.StatusCode}, Reason: {archiveResponse.ReasonPhrase}");
         }
+        else
+        {
+			Console.WriteLine("Archive inserted successfully.");
+        }
+
+		var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+		if (!deleteParResponse.IsSuccessStatusCode)
+		{
+		    Console.WriteLine("Failed to delete PAR.");
+		}
+        else
+		{
+		    Console.WriteLine("PAR deleted successfully.");
+		}
     }
 
     // Data transfer object to match the server
@@ -202,5 +229,11 @@
         public bool IsClassification5 { get; set; }
         public bool CopiesEndUser { get; set; }
         public bool CopiesGSO { get; set; }
+		public string? SurName { get; set; }
+        public string? DprName { get; set; }
+		public string? PrpName { get; set; }
+		public string? archiveDate { get; set; }
+        public string? ItemCond { get; set; }
+		public int SurQTY { get; set; }
     }
 }

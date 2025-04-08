@@ -32,9 +32,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(1000);
+        await Task.Delay(500);
         IsLoading = false;
-        await InvokeAsync(StateHasChanged);
         var response = await HttpClient.GetAsync("https://localhost:7041/api/Item");
         if (response.IsSuccessStatusCode)
         {
