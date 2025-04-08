@@ -1,268 +1,263 @@
 ﻿@using Radzen.Blazor
-@using System.Globalization;
-@using Newtonsoft.Json.Linq;
-@using System.Net.Http;
-@using System.Net.Http.Json;
-@using System.Text;
-@using System.Text.Json;
+@using System.Globalization
+@using Newtonsoft.Json.Linq
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Text
+@using System.Text.Json
+@using Blazored.Modal.Services
 @page "/addform"
 @rendermode InteractiveAuto
 
 @inject HttpClient HttpClient
+@inject IModalService ModalService
+@inject NavigationManager NavigationManager
 
-<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
 <h1>Add Transaction</h1>
 
 <RadzenForm id="form">
-	<RadzenFieldset>
-		<RadzenLabel Text="Recepient Name"/>
-		<RadzenTextBox @bind-Value="CSTName"></RadzenTextBox>
-	</RadzenFieldset>
-	<RadzenFieldset>
-		<RadzenLabel Text="Department" />
-		<RadzenTextBox @bind-Value="DPRName"></RadzenTextBox>
-	</RadzenFieldset>
-	<RadzenFieldset>
-		<RadzenLabel Text="Quantity" />
-		<RadzenNumeric @bind-Value="ParQty"></RadzenNumeric>
-	</RadzenFieldset>
-	<RadzenFieldset>
-		<RadzenLabel Text="Date" />
-		<RadzenDatePicker TValue="DateOnly" @bind-Value="Date" DateFormat="yyyy-MM-dd"/>
-	</RadzenFieldset>
-	<div name="itemdropdown">
-		<RadzenFieldset>
-			<RadzenLabel Text="Item" />
-			<RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="true" AllowFiltering="true" Placeholder="Select an Item" Style="position: absolute;margin-bottom:20px"/>
-		</RadzenFieldset>
-	</div>
+    <RadzenFieldset>
+        <RadzenLabel Text="Recipient Name" />
+        <RadzenTextBox @bind-Value="CSTName" Required="true" />
+        @if (string.IsNullOrEmpty(CSTName))
+        {
+            <p class="validationmessage" style="color:red;">Name is required</p>
+        }
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="Department" />
+        <RadzenTextBox @bind-Value="DPRName" Required="true" />
+        @if (string.IsNullOrEmpty(DPRName))
+        {
+            <p class="validationmessage" style="color:red;">Department is required.</p>
+        }
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="Quantity" />
+        <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" />
+        @if (ParQty <= 0)
+        {
+            <p class="validationmessage" style="color:red;">Quantity must be greater than 0.</p>
+        }
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="Date" />
+        <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" />
+        @if (Date == default)
+        {
+            <p class="validationmessage" style="color:red;">Date is required.</p>
+        }
+    </RadzenFieldset>
+    <div name="itemdropdown">
+        <RadzenFieldset>
+            <RadzenLabel Text="Item" />
+            <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" Placeholder="Select an Item" Required="true" Style="position: absolute; margin-bottom:20px" />
+            @if (string.IsNullOrEmpty(SelectedItem))
+            {
+                <p></p>
+                <p class="validationmessage" style="color:red;">Item selection is required.</p>
+            }
+        </RadzenFieldset>
+    </div>
 
-	<!--<RadzenButton Text="Submit" ButtonType="ButtonType.Button" @onclick="SubmitForm" Style="margin-top: 20px;" />-->
-
-	<input type="submit" value="Submit" @onclick="SubmitForm" style="margin-top: 20px;" />
+    <input type="submit" value="Submit" @onclick="SubmitForm" style="margin-top: 20px;" />
 </RadzenForm>
 
-<div class="modal" style="@(showModal ? "display: block;" : "display: none;")">
-	<div class="modal-content">
-		<span class="close" @onclick="CloseModal">&times;</span>
-		<p>Transaction has been successfully submitted.</p>
-	</div>
-</div>
+<CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
-	@inject ILogger<AddForm> Logger
+    @inject ILogger<AddForm> Logger
 
-	private bool showModal = false;
+    public List<string>? ItemList;
+    public List<string>? CSTList;
 
-	public List<string>? ItemList;
-	public List<string>? CSTList;
+    public string? LatestCSTCode;
+    public string? LatestParCode;
 
-	public string? LatestCSTCode;
-	public string? LatestParCode;
+    public string? ParID;
+    public string? CSTName;
+    public string? DPRName;
+    public int ParQty;
+    public DateOnly Date = DateOnly.FromDateTime(DateTime.Today); // Default to today
+    public string? SelectedItem;
+    public int referenceNo;
+    public int ItemCode;
 
-	public string? ParID;
-	public string? CSTName;
-	public string? DPRName;
-	public int ParQty;
-	public DateOnly Date;
-	public string? SelectedItem;
-	public int referenceNo;
-	public int ItemCode;
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
+        if (response.IsSuccessStatusCode)
+        {
+            ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
+        }
+    }
 
+    private async Task SubmitForm()
+    {
+        try
+        {
+            // Validate all fields before proceeding
+            if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || ParQty <= 0 || Date == default || string.IsNullOrEmpty(SelectedItem))
+            {
+                Logger.LogWarning("Form submission failed due to missing or invalid fields.");
+                await ShowValidationErrorModal();
+                return;
+            }
 
-	protected override async Task OnInitializedAsync()
-	{
-		var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
-		if (response.IsSuccessStatusCode)
-		{
-			ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
-			//ItemList = JsonConvert.DeserializeObject<List<string>>(json);
-		}
-		// var cstresponse = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
-		// if (cstresponse.IsSuccessStatusCode)
-		// {
-		// 	CSTList = await cstresponse.Content.ReadFromJsonAsync<List<string>>();
-		// 	LatestCSTCode = CSTList.LastOrDefault();
-		// }
-		// var parresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/GetLatest");
-		// if (parresponse.IsSuccessStatusCode)
-		// {
-		// 	var parList = await parresponse.Content.ReadFromJsonAsync<List<string>>();
-		// 	LatestParCode = parList.LastOrDefault();
-		// }
-	}
+            Console.WriteLine("SubmitForm() started");
 
-	private async Task SubmitForm()
-	{
-		try
-		{
-			//var cstCodeValue = await CSTCode;
-			Console.WriteLine("SubmitForm() started"); // Debugging line
+            var random = new Random();
+            referenceNo = random.Next(100000, 999999);
+            var selectedItem = SelectedItem;
+            var itemCodeResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{selectedItem}");
+            if (itemCodeResponse.IsSuccessStatusCode)
+            {
+                var itemCode = await itemCodeResponse.Content.ReadFromJsonAsync<int>();
+                ItemCode = itemCode;
+            }
 
-			var random = new Random();
-			referenceNo = random.Next(100000, 999999);//generation ng ref no
-			var selectedItem = SelectedItem;
-			var itemCodeResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{selectedItem}");
-			if (itemCodeResponse.IsSuccessStatusCode)
-			{
-				var itemCode = await itemCodeResponse.Content.ReadFromJsonAsync<int>();
-				ItemCode = itemCode;
-			}
+            var formData = new
+            {
+                ParID = await GenerateParCode(),
+                ItemCode = ItemCode,
+                ItemName = SelectedItem,
+                ParName = CSTName,
+                DPRName = DPRName,
+                ParDate = Date.ToString("yyyy-MM-dd"),
+                refNo = referenceNo,
+                ParQty = ParQty
+            };
 
-			var formData = new
-			{
-				ParID = await GenerateParCode(),
-				ItemCode = ItemCode,
-				ItemName = SelectedItem,
-				ParName = CSTName,
-				DPRName = DPRName,
-				ParDate = Date.ToString("yyyy-MM-dd"),
-				refNo = referenceNo,
-				ParQty = ParQty
-			};
+            var custodianData = new
+            {
+                CSTCode = await GenerateCSTCode(),
+                CSTName = CSTName,
+                DPRName = DPRName
+            };
 
-			var custodianData = new
-			{
-				CSTCode = await GenerateCSTCode(),
-				CSTName = CSTName,
-				DPRName = DPRName
-			};
+            var formDataJson = JsonConvert.SerializeObject(formData);
+            var custodianDataJson = JsonConvert.SerializeObject(custodianData);
 
-			// Serialize the data to JSON with double quotes
-			var options = new JsonSerializerOptions
-				{
-					PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-					WriteIndented = false
-				};
+            Console.WriteLine(JsonConvert.SerializeObject(custodianData));
+            Console.WriteLine(JsonConvert.SerializeObject(formData));
 
-			// Convert objects to JSON format with double quotes
-			var formDataJson = JsonConvert.SerializeObject(formData);
-			var custodianDataJson = JsonConvert.SerializeObject(custodianData);
+            var postPar = await HttpClient.PostAsync(
+                "https://localhost:7041/api/PAR",
+                new StringContent(formDataJson, Encoding.UTF8, "application/json")
+            );
+            if (!postPar.IsSuccessStatusCode)
+            {
+                string responseText = await postPar.Content.ReadAsStringAsync();
+                Logger.LogError($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
+                throw new Exception($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
+            }
 
-			Console.WriteLine(JsonConvert.SerializeObject(custodianData));
-			Console.WriteLine(JsonConvert.SerializeObject(formData));
+            var postCustodian = await HttpClient.PostAsync(
+                "https://localhost:7041/api/Custodian",
+                new StringContent(custodianDataJson, Encoding.UTF8, "application/json")
+            );
+            if (!postCustodian.IsSuccessStatusCode)
+            {
+                Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}");
+                throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}");
+            }
 
-			var postPar = await HttpClient.PostAsync(
-				"https://localhost:7041/api/PAR",
-				new StringContent(formDataJson, Encoding.UTF8, "application/json")
-			);
-			if (!postPar.IsSuccessStatusCode)
-			{
-				Logger.LogError($"PAR API failed with status code {postPar.StatusCode}");
-				throw new Exception($"PAR API failed with status code {postPar.StatusCode}");
-				string responseText = await postPar.Content.ReadAsStringAsync();
-				throw new Exception($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
-			}
-			// Send Custodian data request
-			var postCustodian = await HttpClient.PostAsync(
-				"https://localhost:7041/api/Custodian",
-				new StringContent(custodianDataJson, Encoding.UTF8, "application/json")
-			);
+            if (postPar.IsSuccessStatusCode && postCustodian.IsSuccessStatusCode)
+            {
+                Logger.LogInformation("Both API calls were successful.");
+                await ShowSuccessModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in SubmitForm.");
+            throw;
+        }
+    }
 
-			if (!postCustodian.IsSuccessStatusCode)
-			{
-				Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}");
-				throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}");
-			}
+    private async Task ShowSuccessModal()
+    {
+        var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
+            };
 
-			if (postPar.IsSuccessStatusCode && postCustodian.IsSuccessStatusCode)
-			{
-				Logger.LogInformation("Both API calls were successful.");
-				showModal = true;
-			}
+        var parameters = new ModalParameters();
 
-			if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || string.IsNullOrEmpty(SelectedItem) || ParQty <= 0)
-			{
-				throw new Exception("Missing required fields. Please fill out all fields correctly.");
-			}
+        var modal = ModalService.Show<SuccessAddForm>("", parameters, options);
+        var result = await modal.Result;
 
-			//throw new Exception("Missing required fields. Please fill out all fields correctly.");
-		}
-		catch (HttpRequestException ex)
-		{
-			Logger.LogError(ex, "Error sending request to API.");
-			throw;
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex, "Error in SubmitForm.");
-			throw;
-		}
-	}
-	private void CloseModal()
-	{
-		showModal = false;
-	}
+        if (!result.Cancelled)
+        {
+            // Refresh the page when the modal is closed
+            NavigationManager.NavigateTo("/addform", forceLoad: true);
+        }
+    }
 
-	private async Task<string> GenerateCSTCode()
-	{
-		var random = new Random();
-		var existingCSTCodes = await GetExistingCSTCodes();
+    private async Task ShowValidationErrorModal()
+    {
+        var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
+            };
 
-		while (true)
-		{
-			var randomCode = $"CST{random.Next(100, 1000)}";
-			if (!existingCSTCodes.Contains(randomCode))
-			{
-				return randomCode;
-			}
-		}
-	}
+        var parameters = new ModalParameters();
+        // parameters.Add("Title", "Validation Error");
+        // parameters.Add("Message", "Invalid inputs detected. Please fill out all required fields.");
 
-	private async Task<List<string>> GetExistingCSTCodes()
-	{
-		var response = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
-		var json = await response.Content.ReadAsStringAsync();
-		var existingCSTCodes = JsonConvert.DeserializeObject<List<string>>(json);
-		return existingCSTCodes;
-	}
+        var modal = ModalService.Show<ErrorAddForm>("Validation Error", parameters, options);
+        await modal.Result; // Wait for the modal to close, no page reload needed
+    }
 
-	// private async Task<string> GenerateCSTCode()
-	// {
-	// 	int number = 1;
-	// 	string newCSTCode;
-	// 	bool isDuplicate = true;
+    private async Task<string> GenerateCSTCode()
+    {
+        var random = new Random();
+        var existingCSTCodes = await GetExistingCSTCodes();
 
-	// 	do
-	// 	{
-	// 		newCSTCode = $"CST{number.ToString("D3")}";
+        while (true)
+        {
+            var randomCode = $"CST{random.Next(100, 1000)}";
+            if (!existingCSTCodes.Contains(randomCode))
+            {
+                return randomCode;
+            }
+        }
+    }
 
-	// 		// Call API to check if the CSTCode already exists
-	// 		var cstresponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/Exists/{newCSTCode}");
-	// 		isDuplicate = cstresponse.IsSuccessStatusCode && await cstresponse.Content.ReadFromJsonAsync<bool>();
+    private async Task<List<string>> GetExistingCSTCodes()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
+        var json = await response.Content.ReadAsStringAsync();
+        var existingCSTCodes = JsonConvert.DeserializeObject<List<string>>(json);
+        return existingCSTCodes;
+    }
 
-	// 		if (isDuplicate)
-	// 		{
-	// 			number++; // Increment only if it's a duplicate
-	// 		}
+    private async Task<string> GenerateParCode()
+    {
+        var random = new Random();
+        var existingParCodes = await GetExistingParCode();
 
-	// 	} while (isDuplicate);
+        while (true)
+        {
+            var randomCode = $"PAR{random.Next(100, 1000)}";
+            if (!existingParCodes.Contains(randomCode))
+            {
+                return randomCode;
+            }
+        }
+    }
 
-	// 	return newCSTCode;
-	// }
-	
-	private async Task<string> GenerateParCode()
-	{
-		var random = new Random();
-		var existingParCodes = await GetExistingParCode();
-
-		while (true)
-		{
-			var randomCode = $"P{random.Next(100, 1000)}";
-			if (!existingParCodes.Contains(randomCode))
-			{
-				return randomCode;
-			}
-		}
-	}
-
-	private async Task<List<string>> GetExistingParCode()
-	{
-		var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR/GetLatest");
-		var json = await response.Content.ReadAsStringAsync();
-		var existingParCodes = JsonConvert.DeserializeObject<List<string>>(json);
-		return existingParCodes;
-	}
+    private async Task<List<string>> GetExistingParCode()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR/GetLatest");
+        var json = await response.Content.ReadAsStringAsync();
+        var existingParCodes = JsonConvert.DeserializeObject<List<string>>(json);
+        return existingParCodes;
+    }
 }
