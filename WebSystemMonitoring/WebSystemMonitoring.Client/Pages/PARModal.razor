@@ -35,12 +35,27 @@
     }
 </div>
 
+<div>
+    <h4>Distribution Of Copies</h4>
+    <RadzenCheckBox @bind-Value="Copies1" Text="Requisitioner c/o Property Custodian" />
+    <RadzenCheckBox @bind-Value="Copies2" Text="GSO" />
+    <RadzenCheckBox @bind-Value="Copies3" Text="Accounting Office" />
+    <RadzenCheckBox @bind-Value="Copies4" Text="Disbursement Voucher" />
+</div>
+
+<div>
+    <RadzenTextBox @bind-Value="Head" Placeholder="Enter Office Head" Required="true" />
+</div>
+
 <button class="btn btn-primary mt-2" @onclick="SaveToExcel">Save</button>
 
 @code {
     [Parameter] public string SelectedPar { get; set; }
 
     private PAR SelectedParData;
+
+    private float Value;
+	private string? Head;
 
     private bool IsClassification1;
     private bool IsClassification2;
@@ -52,7 +67,13 @@
     private bool IsSourceOfFund2;
     private bool IsSourceOfFund3;
     private bool IsSourceOfFund4;
-    private string OtherSourceOfFund;
+    private string? OtherSourceOfFund;
+    private string? FundType;
+
+    private bool Copies1;
+    private bool Copies2;
+    private bool Copies3;
+    private bool Copies4;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,11 +84,17 @@
             {
                 SelectedParData = await response.Content.ReadFromJsonAsync<PAR>();
             }
+            var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedParData.ItemName}");
+            if (priceResponse.IsSuccessStatusCode)
+            {
+                Value = await priceResponse.Content.ReadFromJsonAsync<float>();
+            }
         }
     }
 
     private async Task SaveToExcel()
     {
+        string fundType = GetFundType();
         // Prepare data for the server
         var parData = new ParData
             {
@@ -83,11 +110,9 @@
                 IsClassification3 = IsClassification3,
                 IsClassification4 = IsClassification4,
                 IsClassification5 = IsClassification5,
-                IsSourceOfFund1 = IsSourceOfFund1,
-                IsSourceOfFund2 = IsSourceOfFund2,
-                IsSourceOfFund3 = IsSourceOfFund3,
-                IsSourceOfFund4 = IsSourceOfFund4,
-                OtherSourceOfFund = OtherSourceOfFund
+				FundType = fundType,
+				value = Value,
+                head = Head
             };
 
         // Call the server API to generate the Excel file
@@ -112,6 +137,16 @@
         }
     }
 
+    private string GetFundType()
+    {
+        if (IsSourceOfFund1) return "GF";
+        if (IsSourceOfFund2) return "SEF";
+        if (IsSourceOfFund3) return "Trust Fund";
+		if (IsSourceOfFund4) return "Other";
+        if (IsSourceOfFund4) return $"{OtherSourceOfFund ?? "No details provided"}";
+        return "None"; // Default if no transfer type is selected
+    }
+
     // Data transfer object to match the server
     private class ParData
     {
@@ -127,10 +162,12 @@
         public bool IsClassification3 { get; set; }
         public bool IsClassification4 { get; set; }
         public bool IsClassification5 { get; set; }
-        public bool IsSourceOfFund1 { get; set; }
-        public bool IsSourceOfFund2 { get; set; }
-        public bool IsSourceOfFund3 { get; set; }
-        public bool IsSourceOfFund4 { get; set; }
-        public string? OtherSourceOfFund { get; set; }
+		public bool Copies1 { get; set; }
+        public bool Copies2 { get; set; }
+        public bool Copies3 { get; set; }
+        public bool Copies4 { get; set; }
+		public string? FundType { get; set; }
+		public float value { get; set; }
+		public string? head { get; set; }
     }
 }

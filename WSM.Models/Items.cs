@@ -14,5 +14,6 @@ namespace APIFinal.Models
         public bool Servicable { get; set; }
         public bool NonServ { get; set; }
         public string Place { get; set; }
+        public int LifeTime { get; set; }
     }
 }

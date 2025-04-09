@@ -49,6 +49,7 @@ else
     <div class="column">
         <button class="btn btn-primary mt-2" @onclick="ShowTransfer">Transfer</button>
         <button class="btn btn-primary mt-2" @onclick="ShowSurrender">Surrender</button>
+        <button class="btn btn-priamry mt-2" @onclick="ShowICS">ICS</button>
     </div>
 </div>
 
@@ -120,7 +121,10 @@ else
         }
         if (SelectedFormType == "ICS")
         {
-            ModalService.Show<ICSModal>("");
+			var parameters = new ModalParameters();
+			parameters.Add("SelectedPar", SelectedPar);
+
+            ModalService.Show<ICSModal>("ICS Details", parameters);
         }
         if (SelectedFormType == "Surrender")
         {
@@ -153,6 +157,14 @@ else
                 Class = "custom-large-modal"
             };
         ModalService.Show<TransferTableModal>("Transfer Records", options);
+    }
+    private void ShowICS()
+    {
+        var options = new ModalOptions()
+            {
+                Class = "custom-large-modal"
+            };
+        ModalService.Show<ICSTableModal>("ICS Records", options);
     }
     //  private void GenerateParFile()
    //  {

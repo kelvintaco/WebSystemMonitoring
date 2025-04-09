@@ -1,17 +1,175 @@
-﻿@using OfficeOpenXml;
+﻿@using OfficeOpenXml
 @using System.IO
-@using Radzen.Blazor;
+@using Radzen.Blazor
 @rendermode InteractiveAuto
 
 @inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+<script src="https://localhost:7041/static/site.js"></script>
 
 <h1>ICS Details</h1>
+<div>
+    <p>Printing the ICS form for: @SelectedPar - @Name</p>
+    <label for="position">Position/Office</label>
+    <RadzenTextBox @bind-Value="_Position" Placeholder="Enter Position/Office" Required="true" />
+    <RadzenButton Text="Generate ICS Excel" Click="GenerateExcel" />
+</div>
 
 @code {
+    [Parameter] public string SelectedPar { get; set; }
+    private PAR SelectedItemPARData;
+    private Custodian SelectedCstData;
 
+    private string? Name;
+    private double _Price;
+    private int _Life;
+    private string? _Position;
+    //private string? cstCode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(SelectedPar))
+        {
+            Console.WriteLine("SelectedPar is null or empty. Cannot fetch PAR data.");
+            return;
+        }
+
+        var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+        if (parResponse.IsSuccessStatusCode)
+        {
+            SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+            if (SelectedItemPARData != null)
+            {
+                var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemPARData.ItemName}");
+                if (priceResponse.IsSuccessStatusCode)
+                {
+                    _Price = await priceResponse.Content.ReadFromJsonAsync<double>();
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to fetch Price: {await priceResponse.Content.ReadAsStringAsync()}");
+                }
+
+                var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/getparname/{SelectedItemPARData.ParID}");
+                if (response.IsSuccessStatusCode)
+                {
+                    Name = await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to fetch Name: {await response.Content.ReadAsStringAsync()}");
+                }
+
+                var liferesponse = await HttpClient.GetAsync($"https://localhost:7041/api/Items/getLifetimeByName/{SelectedItemPARData.ItemName}");
+                if (liferesponse.IsSuccessStatusCode)
+                {
+                    _Life = await liferesponse.Content.ReadFromJsonAsync<int>();
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to fetch Life: {await liferesponse.Content.ReadAsStringAsync()}");
+                }
+                var cstResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Custodian/getCstCode/{SelectedItemPARData.ParName}");
+                if (cstResponse.IsSuccessStatusCode)
+                {
+                    var cstCode = await cstResponse.Content.ReadAsStringAsync();
+                    SelectedCstData = new Custodian { CSTCode = cstCode };
+                }
+            }
+            else
+            {
+                Console.WriteLine("SelectedItemPARData is null after deserialization.");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Failed to fetch PAR data: {await parResponse.Content.ReadAsStringAsync()}");
+        }
+    }
+
+    private async Task GenerateExcel()
+    {
+        if (SelectedItemPARData == null)
+        {
+            Console.WriteLine("No PAR data available to generate ICS Excel.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_Position))
+        {
+            Console.WriteLine("Position is required to generate ICS Excel.");
+            return;
+        }
+      
+        var icsInput = new ICSData
+            {
+                ItemCode = SelectedItemPARData.ItemCode,
+                Description = SelectedItemPARData.ItemName,
+                CSTCode = SelectedCstData.CSTCode,
+                ICSName = Name,
+                ICSPrice = _Price,
+                LifeTime = _Life,
+                Qty = SelectedItemPARData.ParQty,
+                IcsDate = DateOnly.FromDateTime(DateTime.Now),
+            };
+
+        var ICSresponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsInput);
+        if (!ICSresponse.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Failed to fetch Item data. Status: {ICSresponse.StatusCode}, Reason: {ICSresponse.ReasonPhrase}");
+        }
+
+        var icsData = new ICSData
+            {
+                ICSID = 0,
+                ItemCode = SelectedItemPARData.ItemCode,
+                Description = SelectedItemPARData.ItemName,
+                CSTCode = SelectedCstData.CSTCode,
+                ICSName = Name,
+                ICSPrice = _Price,
+                LifeTime = _Life,
+                Qty = SelectedItemPARData.ParQty,
+                IcsDate = DateOnly.FromDateTime(DateTime.Now),
+                Position = _Position
+            };
+
+        var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-ics", icsData);
+        if (excelResponse.IsSuccessStatusCode)
+        {
+            var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("downloadFile", "ICSForm.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                Console.WriteLine("ICS Excel file generated and download triggered successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to trigger download: {ex.Message}");
+            }
+        }
+        else
+        {
+            var errorContent = await excelResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Failed to generate ICS Excel file. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
+        }
+    }
+
+    public class ICSData
+    {
+        public int ICSID { get; set; }
+        public int ItemCode { get; set; }
+        public string Description { get; set; }
+        public string CSTCode { get; set; }
+        public string ICSName { get; set; }
+        public double ICSPrice { get; set; }
+        public int LifeTime { get; set; }
+        public int Qty { get; set; }
+        public DateOnly IcsDate { get; set; }
+		public string Position { get; set; }
+    }
 }
