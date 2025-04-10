@@ -5,50 +5,39 @@
 
 <h1>Archive List</h1>
 
-@if (IsLoading)
-{
-    <div class="spinner-border" role="status">
-    </div>
-}
-else 
-{
-    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_archivelist" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" PageSize="10">
-        <Columns>
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="archiveID" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="SurName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="PrpName" Title="PrpName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="DprName" Title="DprName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Value" Title="Value" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="ItemCond" Title="ItemCond" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="SurQTY" />
-        </Columns>
-    </RadzenDataGrid>
-    <p></p>
-    <p></p>
-    <p></p>
+<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_archivelist" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="archiveID" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="SurName" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="PrpName" Title="PrpName" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="DprName" Title="DprName" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Value" Title="Value" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="ItemCond" Title="ItemCond" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="SurQTY" />
+    </Columns>
+</RadzenDataGrid>
+<p></p>
+<p></p>
+<p></p>
 
-    <h1>Item Disposal</h1>
-    <RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowPaging="true" PageSize="10">
-        <Columns>
-            <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="NonServCode" />
-            <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="disposalName" />
-            <RadzenDataGridColumn TItem="ItemDisposal" Property="Description" Title="Description" />
-            <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalDate" Title="disposalDate" />
-        </Columns>
-    </RadzenDataGrid>
-}
+<h1>Item Disposal</h1>
+<RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="NonServCode" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="disposalName" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="Description" Title="Description" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalDate" Title="disposalDate" />
+    </Columns>
+</RadzenDataGrid>
 
 @code {
     private List<ArchivedTransactions>? _archivelist;
     private List<ItemDisposal>? _itemdisposals;
-    private bool IsLoading = true;
     private RadzenDataGrid<ArchivedTransactions> grid;
     private RadzenDataGrid<ItemDisposal> disposalgrid;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(500);
-        IsLoading = false;
         var Archiveresponse = await HttpClient.GetAsync("https://localhost:7041/api/ArchivedTransactions");
         if (Archiveresponse.IsSuccessStatusCode)
         {

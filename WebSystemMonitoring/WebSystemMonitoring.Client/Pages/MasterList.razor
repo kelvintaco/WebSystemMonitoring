@@ -23,33 +23,25 @@
 
 <h1>Master List</h1>
 
-@if (IsLoading)
-{
-    <div class="spinner-border" role="status">
-    </div>
-}
-else
-{
-    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true"  PageSize="10">
-        <Columns>
-            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="ItemCode" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="ItemName" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="ParName" />
-            <RadzenDataGridColumn TItem="PAR" Property="DprName" Title="DprName" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="ParDate" />
-            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="RefNo" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="ParQty" />
-        </Columns>
-    </RadzenDataGrid>
-}
+<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true"  PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
+        <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="ItemCode" />
+        <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="ItemName" />
+        <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="ParName" />
+        <RadzenDataGridColumn TItem="PAR" Property="DprName" Title="DprName" />
+        <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="ParDate" />
+        <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="RefNo" />
+        <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="ParQty" />
+    </Columns>
+</RadzenDataGrid>
 
 <div class="mt-4 border p-4">
     <h5>Other Tables</h5>
     <div class="column">
         <button class="btn btn-primary mt-2" @onclick="ShowTransfer">Transfer</button>
         <button class="btn btn-primary mt-2" @onclick="ShowSurrender">Surrender</button>
-        <button class="btn btn-priamry mt-2" @onclick="ShowICS">ICS</button>
+        <button class="btn btn-primary mt-2" @onclick="ShowICS">ICS</button>
     </div>
 </div>
 
@@ -83,14 +75,12 @@ else
     private string? SelectedPar;
     private string? SelectedFormType;
 
-    private bool IsLoading = true;
     private RadzenDataGrid<PAR> grid;
 
     private string? AdditionalDetails;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(500);
         var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR");
         if (response.IsSuccessStatusCode)
         {
@@ -107,8 +97,6 @@ else
             var json = await paridresponse.Content.ReadAsStringAsync();
             ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
         }
-        IsLoading = false;
-        await InvokeAsync(StateHasChanged);
     }
     private void ShowModal()
     {
