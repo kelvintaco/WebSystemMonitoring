@@ -1,5 +1,56 @@
-﻿<h3>SurrenderTableModal</h3>
+﻿@using Radzen.Blazor;
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h1>Surrender Table</h1>
+
+@if (IsLoading)
+{
+    <div class="spinner-border" role="status">
+    </div>
+}
+else
+{
+    <RadzenDataGrid class="surrendermodal" @ref="grid" Data="@SurList" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="archiveID" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="SurName" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="PrpName" Title="PrpName" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="DprName" Title="DprName" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveDate" Title="archiveDate" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Value" Title="Value" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="ItemCond" Title="ItemCond" />
+            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="SurQTY" />
+        </Columns>
+    </RadzenDataGrid>
+}
 
 @code {
+    private bool IsLoading = true;
+    private RadzenDataGrid<ArchivedTransactions> grid;
+    private List<ArchivedTransactions>? SurList;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/ArchivedTransactions");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            SurList = JsonConvert.DeserializeObject<List<ArchivedTransactions>>(json);
+        }
+        else
+        {
+            SurList = null;
+        }
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
 }
+

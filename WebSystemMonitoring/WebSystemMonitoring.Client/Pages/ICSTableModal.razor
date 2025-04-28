@@ -1,5 +1,57 @@
-﻿<h3>ICSTableModal</h3>
+﻿@using Radzen.Blazor;
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h1>ICS</h1>
+
+@if (IsLoading)
+{
+    <div class="spinner-border" role="status">
+    </div>
+}
+else
+{
+    <RadzenDataGrid class="icsmodal" @ref="grid" Data="@ICSList" TItem="ICS" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="ICS" Property="ICSID" Title="ICSID" />
+            <RadzenDataGridColumn TItem="ICS" Property="ItemCode" Title="ItemCode" />
+            <RadzenDataGridColumn TItem="ICS" Property="Description" Title="Description" />
+            <RadzenDataGridColumn TItem="ICS" Property="CstCode" Title="CstCode" />
+            <RadzenDataGridColumn TItem="ICS" Property="ICSName" Title="ICSName" />
+            <RadzenDataGridColumn TItem="ICS" Property="ICSPrice" Title="ICSPrice" />
+            <RadzenDataGridColumn TItem="ICS" Property="Life" Title="Life" />
+            <RadzenDataGridColumn TItem="ICS" Property="Qty" Title="Qty" />
+            <RadzenDataGridColumn TItem="ICS" Property="IcsDate" Title="IcsDate" />
+        </Columns>
+    </RadzenDataGrid>
+}
 
 @code {
+    private bool IsLoading = true;
+    private RadzenDataGrid<ICS> grid;
+    private List<ICS>? ICSList;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/ICS");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            ICSList = JsonConvert.DeserializeObject<List<ICS>>(json);
+        }
+        else
+        {
+            ICSList = null;
+        }
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
 }
+
