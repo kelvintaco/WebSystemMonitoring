@@ -144,7 +144,8 @@
             var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
             try
             {
-                await JSRuntime.InvokeVoidAsync("downloadFile", "ICSForm.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                //await JSRuntime.InvokeVoidAsync("downloadFile", "ICSForm.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                await JSRuntime.InvokeVoidAsync("downloadFile", "ICSData.pdf", Convert.ToBase64String(fileBytes), "application/pdf");
                 Console.WriteLine("ICS Excel file generated and download triggered successfully.");
             }
             catch (Exception ex)

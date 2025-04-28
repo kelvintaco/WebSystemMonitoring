@@ -211,7 +211,8 @@
                 var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
                 try
                 {
-                    await JSRuntime.InvokeVoidAsync("downloadFile", "TransferData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    //await JSRuntime.InvokeVoidAsync("downloadFile", "TransferData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    await JSRuntime.InvokeVoidAsync("downloadFile", "TransData.pdf", Convert.ToBase64String(fileBytes), "application/pdf");
                     Console.WriteLine("File generated and download triggered successfully.");
                 }
                 catch (Exception ex)

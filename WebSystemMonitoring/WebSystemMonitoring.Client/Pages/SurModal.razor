@@ -171,7 +171,8 @@
         if (response.IsSuccessStatusCode)
         {
             var fileBytes = await response.Content.ReadAsByteArrayAsync();
-            await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            //await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            await JSRuntime.InvokeVoidAsync("downloadFile", "SURData.pdf", Convert.ToBase64String(fileBytes), "application/pdf");
             Console.WriteLine("File generated and download triggered successfully.");
         }
         else
