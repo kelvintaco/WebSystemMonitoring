@@ -37,8 +37,11 @@
     <RadzenTextArea @bind-Value="ReasonForTransfer" Placeholder="Reason for Transfer" />
 
     <RadzenTextBox @bind-Value="ApprovedBy" Placeholder="Approved By" />
+    <RadzenDatePicker TValue="DateOnly" @bind-Value="ApprovedDate" Required="true" DateFormat="yyyy-MM-dd" />
     <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Released By" />
+    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" Required="true" DateFormat="yyyy-MM-dd" />
     <RadzenTextBox @bind-Value="ReceivedBy" Placeholder="Received By" />
+    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReceivedDate" Required="true" DateFormat="yyyy-MM-dd" />
     <RadzenTextBox @bind-Value="Designation" Placeholder="Designation" />
 
     <RadzenButton Text="Submit" Click="OnSubmit" />
@@ -65,6 +68,10 @@
     public string? ReceivedBy;
     public string? Designation;
     public string? ItemCondition;
+    public DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ApprovedDate = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ReleasedDate = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ReceivedDate = DateOnly.FromDateTime(DateTime.Today);
 
     private int PrtId;
     private int ItemCode;
@@ -178,6 +185,19 @@
 			    Condition = ItemCondition,
 			    receiveName = ReceivedBy,
 			    TransferType = transferType,
+				approvedBy = ApprovedBy,
+                approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
+				designation = Designation,
+				designationReceived = Designation,
+				designationRelease = Designation,
+				from = FromName,
+				FundCluster = FundCluster,
+				reason = ReasonForTransfer,
+				receivedBy = ReceivedBy,
+				receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
+				releaseBy = ReleasedBy,
+				releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
+				to = ToName
 			};
 
         var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transfer);
@@ -283,6 +303,20 @@
         public string? ReleasedBy { get; set; }
         public string? Designation { get; set; }
 		public string? receiveName { get; set; }
+
+        public string fundcluster { get; set; }
+        public string from { get; set; }
+        public string to { get; set; }
+        public string reason { get; set; }
+        public string approvedBy { get; set; }
+        public string designation { get; set; }
+        public string approvedByDate { get; set; }
+        public string releaseBy { get; set; }
+        public string designationRelease { get; set; }
+        public string releaseByDate { get; set; }
+        public string receivedBy { get; set; }
+        public string designationReceived { get; set; }
+        public string receivedByDate { get; set; }
 
     }
 }

@@ -23,6 +23,13 @@
 
 <h1>Master List</h1>
 
+<div class="mt-4">
+    <h5>Add Item</h5>
+    <div class="column">
+		<button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Item</button>
+    </div>
+</div>
+
 <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true"  PageSize="10">
     <Columns>
         <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
@@ -154,6 +161,11 @@
             };
         ModalService.Show<ICSTableModal>("ICS Records", options);
     }
+
+	private void ShowAddForm()
+	{
+		ModalService.Show<AddForm>("Add Item");
+	}
     //  private void GenerateParFile()
    //  {
    //      var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);

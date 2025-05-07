@@ -116,6 +116,9 @@
                 LifeTime = _Life,
                 Qty = SelectedItemPARData.ParQty,
                 IcsDate = DateOnly.FromDateTime(DateTime.Now),
+                FundCluster = "GF",
+				Position = _Position
+                
             };
 
         var ICSresponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsInput);
@@ -172,5 +175,8 @@
         public int Qty { get; set; }
         public DateOnly IcsDate { get; set; }
 		public string Position { get; set; }
+        public DateOnly ICSDate { get; set; }
+        public DateOnly IcsDateReceived { get; set; }
+		public string FundCluster { get; set; }
     }
 }

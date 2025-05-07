@@ -66,6 +66,7 @@
     private string? Condition;
     private string? ConditionSpecification;
     private string? Quantity;
+    private string? Classification;
 
     private bool IsClassification1;
     private bool IsClassification2;
@@ -88,6 +89,8 @@
     private double Value;
     private string? ItemCond;
     private int SurQTY;
+	private string? Clasification;
+	private string? Copies;
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,6 +121,14 @@
 
     private async Task SaveToExcel()
     {
+        var classifications = new List<string>();
+        if (IsClassification1) classifications.Add("Office Equipment");
+        if (IsClassification2) classifications.Add("Furniture & Fixtures");
+        if (IsClassification3) classifications.Add("IT Equipment");
+        if (IsClassification4) classifications.Add("Other Machinery & Equipment");
+        if (IsClassification5) classifications.Add("Communication Equipment");
+
+        Classification = string.Join(", ", classifications);
         if (Condition == "Nonservicable" && SelectedItemPARData != null)
         {
             // Insert into ItemDisposal table
@@ -183,11 +194,15 @@
             {
                 SurName = SelectedItemPARData.ParName,
                 PrpName = SelectedItemPARData.ItemName,
-                DprName = SelectedItemPARData.DprName,
+                DprName = SelectedItemPARData.DprHeadName,
                 archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
                 Value = SelectedItemPARData.value,
                 ItemCond = Condition,
-                SurQTY = SelectedItemPARData.ParQty
+                SurQTY = SelectedItemPARData.ParQty,
+                Clasification = Classification,
+                Copies = CopiesEndUser && CopiesGSO ? "End User, GSO" :
+                         CopiesEndUser ? "End User" :
+                         CopiesGSO ? "GSO" : ""
             };
 
         var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
@@ -236,5 +251,7 @@
 		public string? archiveDate { get; set; }
         public string? ItemCond { get; set; }
 		public int SurQTY { get; set; }
+        public string Clasification { get; set; }
+		public string Copies { get; set; }
     }
 }

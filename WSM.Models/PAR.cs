@@ -12,8 +12,11 @@ namespace APIFinal.Models
         public string ItemName { get; set; }
         [ForeignKey("CstCode")]
         public string ParName { get; set; }
-        public string DprName { get; set; }
+        public string DprHeadName { get; set; }
         public string ParDate { get; set; }
+        public string Classification { get; set; }
+        public string FundCls { get; set; }
+        public string SourceCopies { get; set; }
         public int refNo { get; set; }
         public float value { get; set; }
         public int ParQty { get; set; }
