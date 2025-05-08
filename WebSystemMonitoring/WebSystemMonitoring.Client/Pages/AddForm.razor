@@ -1,6 +1,6 @@
 ﻿@using Radzen.Blazor
 @using System.Globalization
-@using Newtonsoft.Json.Linq
+@using Newtonsoft.Json
 @using System.Net.Http
 @using System.Net.Http.Json
 @using System.Text
@@ -21,49 +21,62 @@
 
 <RadzenForm id="form">
     <RadzenFieldset>
-        <RadzenLabel Text="Recipient Name" />
-        <RadzenTextBox @bind-Value="CSTName" Required="true" />
-        @if (string.IsNullOrEmpty(CSTName))
-        {
-            <p class="validationmessage" style="color:red;">Name is required</p>
-        }
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="Department" />
-        <RadzenTextBox @bind-Value="DPRName" Required="true" />
-        @if (string.IsNullOrEmpty(DPRName))
-        {
-            <p class="validationmessage" style="color:red;">Department is required.</p>
-        }
-    </RadzenFieldset>
-    <RadzenFieldset>
         <RadzenLabel Text="Quantity" />
         <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" />
-        @if (ParQty <= 0)
-        {
-            <p class="validationmessage" style="color:red;">Quantity must be greater than 0.</p>
-        }
+        <RadzenLabel Text="Unit" Style="margin-left:20px;" />
+        <RadzenTextBox Value="@Unit" ReadOnly="true" Style="width:100px; margin-left:5px;" />
+        <RadzenLabel Text="Description" Style="margin-left:20px;" />
+        <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
+                                Placeholder="Select an Item" Required="true" Style="width:200px; margin-left:5px;" 
+                                Change="@OnItemSelected" />
+        <RadzenLabel Text="Date Acquired" Style="margin-left:20px;" />
+        <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px; margin-left:5px;" />
+        <RadzenLabel Text="Property No." Style="margin-left:20px;" />
+        <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px; margin-left:5px;" />
+        <RadzenLabel Text="Unit Value" Style="margin-left:20px;" />
+        <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px; margin-left:5px;" />
+    </RadzenFieldset>
+
+    <RadzenFieldset>
+        <RadzenLabel Text="1. Classification" />
+        <div>
+            <RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment<br />
+            <RadzenCheckBox @bind-Value="IsClassification2" /> Furniture and Fixtures<br />
+            <RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment<br />
+            <RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment<br />
+            <RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment
+        </div>
     </RadzenFieldset>
     <RadzenFieldset>
-        <RadzenLabel Text="Date" />
-        <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" />
-        @if (Date == default)
-        {
-            <p class="validationmessage" style="color:red;">Date is required.</p>
-        }
+        <RadzenLabel Text="2. Reference Check #" />
+        <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px; margin-left:5px;" />
     </RadzenFieldset>
-    <div name="itemdropdown">
-        <RadzenFieldset>
-            <RadzenLabel Text="Item" />
-            <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" Placeholder="Select an Item" Required="true" Style="position: absolute; margin-bottom:20px" />
-            @if (string.IsNullOrEmpty(SelectedItem))
-            {
-                <p></p>
-                <p class="validationmessage" style="color:red;">Item selection is required.</p>
-            }
-        </RadzenFieldset>
-    </div>
-
+    <RadzenFieldset>
+        <RadzenLabel Text="3. Source of Fund" />
+        <div>
+            <RadzenCheckBox @bind-Value="IsSourceOfFund1" /> GF
+            <RadzenCheckBox @bind-Value="IsSourceOfFund2" Style="margin-left:10px;" /> SEF
+            <RadzenCheckBox @bind-Value="IsSourceOfFund3" Style="margin-left:10px;" /> Trust Fund
+            <RadzenTextBox @bind-Value="TrustFundText" Placeholder="Trust Fund details" Style="width:150px; margin-left:10px;" />
+        </div>
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="4. Distribution of Copies" />
+        <div>
+            <RadzenCheckBox @bind-Value="Copies1" /> Requisition c/o Property Custodian<br />
+            <RadzenCheckBox @bind-Value="Copies2" /> GSO<br />
+            <RadzenCheckBox @bind-Value="Copies3" /> Accounting Office<br />
+            <RadzenCheckBox @bind-Value="Copies4" /> Disbursement Voucher
+        </div>
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="Received By:" />
+        <RadzenTextBox @bind-Value="CSTName" ReadOnly="false" Style="width:200px; margin-left:5px;" />
+    </RadzenFieldset>
+    <RadzenFieldset>
+        <RadzenLabel Text="Department Head:" />
+        <RadzenTextBox @bind-Value="DPRName" ReadOnly="false" Style="width:200px; margin-left:5px;" />
+    </RadzenFieldset>
     <input type="submit" value="Submit" @onclick="SubmitForm" style="margin-top: 20px;" />
 </RadzenForm>
 
@@ -86,13 +99,68 @@
     public string? SelectedItem;
     public int referenceNo;
     public int ItemCode;
+    public float value { get; set; } // For unit value display
+    public string? Unit { get; set; } // For unit display (will show ItemCode)
+    public bool IsClassification1 { get; set; }
+    public bool IsClassification2 { get; set; }
+    public bool IsClassification3 { get; set; }
+    public bool IsClassification4 { get; set; }
+    public bool IsClassification5 { get; set; }
+    public bool IsSourceOfFund1 { get; set; }
+    public bool IsSourceOfFund2 { get; set; }
+    public bool IsSourceOfFund3 { get; set; }
+    public string? TrustFundText { get; set; }
+    public bool Copies1 { get; set; }
+    public bool Copies2 { get; set; }
+    public bool Copies3 { get; set; }
+    public bool Copies4 { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        // Load item list
         var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
         if (response.IsSuccessStatusCode)
         {
             ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
+        }
+
+        // Generate reference number on page load
+        var random = new Random();
+        referenceNo = random.Next(100000, 999999);
+    }
+
+    private async Task OnItemSelected(object selectedItem)
+    {
+        if (string.IsNullOrEmpty(SelectedItem)) return;
+
+        try
+        {
+            // Fetch ItemCode
+            var itemCodeResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{SelectedItem}");
+            if (itemCodeResponse.IsSuccessStatusCode)
+            {
+                ItemCode = await itemCodeResponse.Content.ReadFromJsonAsync<int>();
+                Unit = ItemCode.ToString(); // Set Unit to ItemCode
+            }
+            else
+            {
+                Unit = "N/A"; // Fallback if ItemCode fetch fails
+            }
+
+            // Fetch Unit Value
+            var valueResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItem}");
+            if (valueResponse.IsSuccessStatusCode)
+            {
+                value = await valueResponse.Content.ReadFromJsonAsync<float>();
+            }
+
+            // Force UI update
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error fetching item details for {SelectedItem}", SelectedItem);
+            await ShowValidationErrorModal();
         }
     }
 
@@ -101,24 +169,40 @@
         try
         {
             // Validate all fields before proceeding
-            if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || ParQty <= 0 || Date == default || string.IsNullOrEmpty(SelectedItem))
+            if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || ParQty <= 0 || 
+                Date == default || string.IsNullOrEmpty(SelectedItem) ||
+                !(IsClassification1 || IsClassification2 || IsClassification3 || IsClassification4 || IsClassification5) ||
+                !(IsSourceOfFund1 || IsSourceOfFund2 || IsSourceOfFund3) ||
+                !(Copies1 || Copies2 || Copies3 || Copies4))
             {
                 Logger.LogWarning("Form submission failed due to missing or invalid fields.");
                 await ShowValidationErrorModal();
                 return;
             }
 
-            Console.WriteLine("SubmitForm() started");
+            // Construct Classification
+            var classifications = new List<string>();
+            if (IsClassification1) classifications.Add("Office Equipment");
+            if (IsClassification2) classifications.Add("Furniture and Fixtures");
+            if (IsClassification3) classifications.Add("IT Equipment");
+            if (IsClassification4) classifications.Add("Other Machinery & Equipment");
+            if (IsClassification5) classifications.Add("Communication Equipment");
+            var classification = string.Join(", ", classifications);
 
-            var random = new Random();
-            referenceNo = random.Next(100000, 999999);
-            var selectedItem = SelectedItem;
-            var itemCodeResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{selectedItem}");
-            if (itemCodeResponse.IsSuccessStatusCode)
-            {
-                var itemCode = await itemCodeResponse.Content.ReadFromJsonAsync<int>();
-                ItemCode = itemCode;
-            }
+            // Construct FundCls
+            var funds = new List<string>();
+            if (IsSourceOfFund1) funds.Add("GF");
+            if (IsSourceOfFund2) funds.Add("SEF");
+            if (IsSourceOfFund3) funds.Add($"Trust Fund{(string.IsNullOrEmpty(TrustFundText) ? "" : $": {TrustFundText}")}");
+            var fundCls = string.Join(", ", funds);
+
+            // Construct SourceCopies
+            var copies = new List<string>();
+            if (Copies1) copies.Add("Requisition c/o Property Custodian");
+            if (Copies2) copies.Add("GSO");
+            if (Copies3) copies.Add("Accounting Office");
+            if (Copies4) copies.Add("Disbursement Voucher");
+            var sourceCopies = string.Join(", ", copies);
 
             var formData = new
             {
@@ -126,10 +210,15 @@
                 ItemCode = ItemCode,
                 ItemName = SelectedItem,
                 ParName = CSTName,
-                DPRName = DPRName,
+                DprHeadName = DPRName,
                 ParDate = Date.ToString("yyyy-MM-dd"),
+                Classification = classification,
+                FundCls = fundCls,
+                SourceCopies = sourceCopies,
                 refNo = referenceNo,
-                ParQty = ParQty
+                value = value,
+                ParQty = ParQty,
+                Unit = Unit // Include Unit if needed
             };
 
             var custodianData = new
@@ -142,8 +231,8 @@
             var formDataJson = JsonConvert.SerializeObject(formData);
             var custodianDataJson = JsonConvert.SerializeObject(custodianData);
 
-            Console.WriteLine(JsonConvert.SerializeObject(custodianData));
-            Console.WriteLine(JsonConvert.SerializeObject(formData));
+            Console.WriteLine(formDataJson);
+            Console.WriteLine(custodianDataJson);
 
             var postPar = await HttpClient.PostAsync(
                 "https://localhost:7041/api/PAR",
@@ -162,8 +251,9 @@
             );
             if (!postCustodian.IsSuccessStatusCode)
             {
-                Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}");
-                throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}");
+                string responseText = await postCustodian.Content.ReadAsStringAsync();
+                Logger.LogError($"Custodian API failed with status code {postCustodian.StatusCode}: {responseText}");
+                throw new Exception($"Custodian API failed with status code {postCustodian.StatusCode}: {responseText}");
             }
 
             if (postPar.IsSuccessStatusCode && postCustodian.IsSuccessStatusCode)
@@ -175,26 +265,24 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error in SubmitForm.");
-            throw;
+            await ShowValidationErrorModal();
         }
     }
 
     private async Task ShowSuccessModal()
     {
         var options = new ModalOptions
-            {
-                HideCloseButton = true,
-                DisableBackgroundCancel = true
-            };
+        {
+            HideCloseButton = true,
+            DisableBackgroundCancel = true
+        };
 
         var parameters = new ModalParameters();
-
         var modal = ModalService.Show<SuccessAddForm>("", parameters, options);
         var result = await modal.Result;
 
         if (!result.Cancelled)
         {
-            // Refresh the page when the modal is closed
             NavigationManager.NavigateTo("/addform", forceLoad: true);
         }
     }
@@ -202,17 +290,14 @@
     private async Task ShowValidationErrorModal()
     {
         var options = new ModalOptions
-            {
-                HideCloseButton = true,
-                DisableBackgroundCancel = true
-            };
+        {
+            HideCloseButton = true,
+            DisableBackgroundCancel = true
+        };
 
         var parameters = new ModalParameters();
-        // parameters.Add("Title", "Validation Error");
-        // parameters.Add("Message", "Invalid inputs detected. Please fill out all required fields.");
-
         var modal = ModalService.Show<ErrorAddForm>("Validation Error", parameters, options);
-        await modal.Result; // Wait for the modal to close, no page reload needed
+        await modal.Result;
     }
 
     private async Task<string> GenerateCSTCode()

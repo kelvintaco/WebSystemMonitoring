@@ -1,14 +1,14 @@
-﻿@using Radzen.Blazor;
-@using MatBlazor;
+﻿@using Radzen.Blazor
+@using MatBlazor
 @using Blazored.Modal
 @using Blazored.Modal.Services
-@using System.Globalization;
-@using Newtonsoft.Json.Linq;
-@using System.Net.Http;
-@using System.Net.Http.Json;
-@using System.Text;
-@using System.Text.Json;
-@using OfficeOpenXml;
+@using System.Globalization
+@using Newtonsoft.Json
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Text
+@using System.Text.Json
+@using OfficeOpenXml
 @using System.IO
 @page "/masterlist"
 @rendermode InteractiveAuto
@@ -26,22 +26,27 @@
 <div class="mt-4">
     <h5>Add Item</h5>
     <div class="column">
-		<button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Item</button>
+        <button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Item</button>
     </div>
 </div>
-
-<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true"  PageSize="10">
-    <Columns>
-        <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="ParID" />
-        <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="ItemCode" />
-        <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="ItemName" />
-        <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="ParName" />
-        <RadzenDataGridColumn TItem="PAR" Property="DprName" Title="DprName" />
-        <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="ParDate" />
-        <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="RefNo" />
-        <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="ParQty" />
-    </Columns>
-</RadzenDataGrid>
+<div style="width: 70%;">
+    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="150px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian Name" Width="150px" />
+            <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Department Head" Width="150px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date Acquired" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Classification" Width="200px" />
+            <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Source of Fund" Width="150px" />
+            <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Distribution of Copies" Width="200px" />
+            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Reference No." Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="value" Title="Unit Value" Width="100px" FormatString="{0:C}" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="100px" />
+        </Columns>
+    </RadzenDataGrid>
+</div>
 
 <div class="mt-4 border p-4">
     <h5>Other Tables</h5>
@@ -74,7 +79,24 @@
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
+
 @code {
+    public class PAR
+    {
+        public string ParID { get; set; }
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+        public string ParName { get; set; }
+        public string DprHeadName { get; set; }
+        public string ParDate { get; set; }
+        public string Classification { get; set; }
+        public string FundCls { get; set; }
+        public string SourceCopies { get; set; }
+        public int refNo { get; set; }
+        public float value { get; set; }
+        public int ParQty { get; set; }
+    }
+
     private List<PAR>? TransactList;
     private List<string>? ParIDList;
     private List<string>? FormTypeList = new List<string> { "PAR", "ICS", "Surrender", "Transfer" };
@@ -88,6 +110,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Load PAR data
         var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR");
         if (response.IsSuccessStatusCode)
         {
@@ -96,113 +119,117 @@
         }
         else
         {
-            TransactList = null;
+            TransactList = new List<PAR>();
         }
+
+        // Load ParID list for dropdown
         var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
         if (paridresponse.IsSuccessStatusCode)
         {
-            var json = await paridresponse.Content.ReadAsStringAsync();
             ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
         }
+        else
+        {
+            ParIDList = new List<string>();
+        }
     }
+
     private void ShowModal()
     {
         if (SelectedFormType == "PAR")
         {
             var parameters = new ModalParameters();
             parameters.Add("SelectedPar", SelectedPar);
-
             ModalService.Show<PARModal>("PAR Details", parameters);
         }
-        if (SelectedFormType == "ICS")
+        else if (SelectedFormType == "ICS")
         {
-			var parameters = new ModalParameters();
-			parameters.Add("SelectedPar", SelectedPar);
-
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
             ModalService.Show<ICSModal>("ICS Details", parameters);
         }
-        if (SelectedFormType == "Surrender")
+        else if (SelectedFormType == "Surrender")
         {
             var parameters = new ModalParameters();
             parameters.Add("SelectedPar", SelectedPar);
-
             ModalService.Show<SurModal>("Surrender Details", parameters);
         }
-        if (SelectedFormType == "Transfer")
+        else if (SelectedFormType == "Transfer")
         {
             var parameters = new ModalParameters();
             parameters.Add("SelectedPar", SelectedPar);
-
             ModalService.Show<TransModal>("Transfer Details", parameters);
         }
     }
 
     private void ShowSurrender()
     {
-        var options = new ModalOptions()
+        var options = new ModalOptions
             {
                 Class = "custom-large-modal"
             };
         ModalService.Show<SurrenderTableModal>("Surrender Records", options);
     }
+
     private void ShowTransfer()
     {
-        var options = new ModalOptions()
+        var options = new ModalOptions
             {
                 Class = "custom-large-modal"
             };
         ModalService.Show<TransferTableModal>("Transfer Records", options);
     }
+
     private void ShowICS()
     {
-        var options = new ModalOptions()
+        var options = new ModalOptions
             {
                 Class = "custom-large-modal"
             };
         ModalService.Show<ICSTableModal>("ICS Records", options);
     }
 
-	private void ShowAddForm()
-	{
-		ModalService.Show<AddForm>("Add Item");
-	}
-    //  private void GenerateParFile()
-   //  {
-   //      var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
-   //      if (selectedPar == null) return;
+    private void ShowAddForm()
+    {
+        ModalService.Show<AddForm>("Add Item");
+    }
 
-   //      var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
-   //      var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
-
-   //      var existingFile = new System.IO.FileInfo(existingFilePath);
-   //      var newFile = new System.IO.FileInfo(newFilePath);
-
-   //      if (!existingFile.Exists)
-   //      {
-   //          Console.WriteLine("Template file not found!");
-   //          return;
-   //      }
-   //      using (var package = new ExcelPackage(existingFile))
-   //      {
-   //          var worksheet = package.Workbook.Worksheets["PAR"];
-   //          if (worksheet == null)
-   //          {
-   //              Console.WriteLine("Worksheet 'PAR' not found!");
-   //              return;
-   //          }
-
-   //          worksheet.Cells["F6"].Value = selectedPar.ParID;
-   //          worksheet.Cells["E9"].Value = selectedPar.ItemCode;
-   //          worksheet.Cells["C9"].Value = selectedPar.ItemName;
-   //          worksheet.Cells["E40"].Value = selectedPar.ParName;
-			// worksheet.Cells["C36"].Value = selectedPar.ParDate;
-   //          worksheet.Cells["C35"].Value = selectedPar.refNo;
-   //          worksheet.Cells["A9"].Value = selectedPar.ParQty;
-
-   //          worksheet.Cells["D47"].Value = "Juan Dela Cruz";
-
-   //          // Save to a new file
-   //          package.SaveAs(newFile);
-   //      }
-   //  }
+    // private void GenerateParFile()
+    // {
+    //     var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
+    //     if (selectedPar == null) return;
+    //
+    //     var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
+    //     var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
+    //
+    //     var existingFile = new System.IO.FileInfo(existingFilePath);
+    //     var newFile = new System.IO.FileInfo(newFilePath);
+    //
+    //     if (!existingFile.Exists)
+    //     {
+    //         Console.WriteLine("Template file not found!");
+    //         return;
+    //     }
+    //     using (var package = new ExcelPackage(existingFile))
+    //     {
+    //         var worksheet = package.Workbook.Worksheets["PAR"];
+    //         if (worksheet == null)
+    //         {
+    //             Console.WriteLine("Worksheet 'PAR' not found!");
+    //             return;
+    //         }
+    //
+    //         worksheet.Cells["F6"].Value = selectedPar.ParID;
+    //         worksheet.Cells["E9"].Value = selectedPar.ItemCode;
+    //         worksheet.Cells["C9"].Value = selectedPar.ItemName;
+    //         worksheet.Cells["E40"].Value = selectedPar.ParName;
+    //         worksheet.Cells["C36"].Value = selectedPar.ParDate;
+    //         worksheet.Cells["C35"].Value = selectedPar.refNo;
+    //         worksheet.Cells["A9"].Value = selectedPar.ParQty;
+    //
+    //         worksheet.Cells["D47"].Value = "Juan Dela Cruz";
+    //
+    //         package.SaveAs(newFile);
+    //     }
+    // }
 }
