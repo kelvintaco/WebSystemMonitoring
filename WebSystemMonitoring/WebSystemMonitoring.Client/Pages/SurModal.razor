@@ -1,55 +1,88 @@
 ﻿@using OfficeOpenXml
 @using System.IO
 @using Radzen.Blazor
+@using Blazored.Modal
+@using Blazored.Modal.Services
 @rendermode InteractiveAuto
 
 @inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
+@inject IModalService ModalService
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
-<script src="https://localhost:7041/static/site.js"></script>
+<script src="/static/site.js"></script>
 
 <h1>Surrender Details</h1>
 
-<div>
-    <label for="condition">What is the condition?</label>
-    <RadzenDropDown @bind-Value="Condition" Data="conditions"/>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label fw-bold">Quantity:</label>
+            <p>@SelectedItemPARData?.ParQty</p>
+        </div>
+        <div class="col">
+            <label class="form-label fw-bold">Unit (Item Code):</label>
+            <p>@SelectedItemPARData?.ItemCode</p>
+        </div>
+        <div class="col">
+            <label class="form-label fw-bold">Description:</label>
+            <p>@SelectedItemPARData?.ItemName</p>
+        </div>
+        <div class="col">
+            <label class="form-label fw-bold">Date Acquired:</label>
+            <p>@SelectedItemPARData?.ParDate</p>
+        </div>
+        <div class="col">
+            <label class="form-label fw-bold">Property No.:</label>
+            <p>@SelectedItemPARData?.ItemCode</p>
+        </div>
+        <div class="col">
+            <label class="form-label fw-bold">Unit Value:</label>
+            <p>₱@SelectedItemPARData?.value.ToString("N2")</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label fw-bold">Surrendered By:</label>
+            <p>@SelectedItemPARData?.ParName</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h5>1. Classification</h5>
+            <div><RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment</div>
+            <div><RadzenCheckBox @bind-Value="IsClassification2" /> Furniture & Fixtures</div>
+            <div><RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment</div>
+            <div><RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment</div>
+            <div><RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment</div>
+        </div>
+        <div class="col-md-6">
+            <h5>2. Distribution of Copies</h5>
+            <div><RadzenCheckBox @bind-Value="CopiesEndUser" /> End User</div>
+            <div><RadzenCheckBox @bind-Value="CopiesGSO" /> GSO</div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Condition:</label>
+            <RadzenDropDown @bind-Value="Condition" Data="conditions" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <RadzenButton Text="Submit" Click="SaveToExcel" ButtonStyle="ButtonStyle.Primary" />
+        </div>
+    </div>
 </div>
 
-<div>
-    <h4>Classification</h4>
-    <RadzenCheckBox @bind-Value="IsClassification1" Text="Office Equipment" />
-    <RadzenCheckBox @bind-Value="IsClassification2" Text="Furniture & Fixtures" />
-    <RadzenCheckBox @bind-Value="IsClassification3" Text="IT Equipment" />
-    <RadzenCheckBox @bind-Value="IsClassification4" Text="Other Machinery & Equipment" />
-    <RadzenCheckBox @bind-Value="IsClassification5" Text="Communication Equipment" />
-</div>
-
-<div>
-    <h4>Distribution of Copies</h4>
-    <RadzenCheckBox @bind-Value="CopiesEndUser" Text="End User" />
-    <RadzenCheckBox @bind-Value="CopiesGSO" Text="GSO" />
-</div>
-
-<div>
-    <label for="reason">Reason</label>
-    <InputText @bind-Value="Reason" />
-</div>
-
-<div>
-    <label for="conditionSpecification">Specify the condition</label>
-    <InputText @bind-Value="ConditionSpecification" />
-</div>
-
-<div>
-    <label for="quantity">Quantity</label>
-    <InputText @bind-Value="Quantity" />
-</div>
-
-<button type="submit" class="btn btn-primary mt-2" @onclick="SaveToExcel">Submit</button>
+<CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
     [Parameter] public string SelectedPar { get; set; }
@@ -89,8 +122,8 @@
     private double Value;
     private string? ItemCond;
     private int SurQTY;
-	private string? Clasification;
-	private string? Copies;
+    private string? Clasification;
+    private string? Copies;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,6 +154,18 @@
 
     private async Task SaveToExcel()
     {
+        if (SelectedItemPARData == null)
+        {
+            Console.WriteLine("No PAR data available to generate surrender form.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(Condition))
+        {
+            Console.WriteLine("Condition is required to generate surrender form.");
+            return;
+        }
+
         var classifications = new List<string>();
         if (IsClassification1) classifications.Add("Office Equipment");
         if (IsClassification2) classifications.Add("Furniture & Fixtures");
@@ -129,16 +174,17 @@
         if (IsClassification5) classifications.Add("Communication Equipment");
 
         Classification = string.Join(", ", classifications);
-        if (Condition == "Nonservicable" && SelectedItemPARData != null)
+
+        if (Condition == "Nonservicable")
         {
             // Insert into ItemDisposal table
             var itemDisposal = new ItemDisposal
-            {
-                NonServCode = SelectedItemPARData.ItemCode.ToString(),
-                disposalName = SelectedItemPARData.ItemName,
-                Description = Reason,
-                disposalDate = DateOnly.FromDateTime(DateTime.Now)
-            };
+                {
+                    NonServCode = SelectedItemPARData.ItemCode.ToString(),
+                    disposalName = SelectedItemPARData.ItemName,
+                    Description = Reason,
+                    disposalDate = DateOnly.FromDateTime(DateTime.Now)
+                };
 
             var addResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ItemDisposal", itemDisposal);
             if (addResponse.IsSuccessStatusCode)
@@ -158,38 +204,45 @@
 
         // Prepare data for the server
         var surrenderData = new SurrenderData
-        {
-            Quantity = Quantity,
-            ItemCode = SelectedItemPARData.ItemCode,
-            ItemName = SelectedItemPARData.ItemName,
-            ParDate = SelectedItemPARData.ParDate,
-            ParID = SelectedItemPARData.ParID,
-            Value = SelectedItemPARData.value,
-            Price = Price,
-            ParName = SelectedItemPARData.ParName,
-            Condition = Condition,
-            IsClassification1 = IsClassification1,
-            IsClassification2 = IsClassification2,
-            IsClassification3 = IsClassification3,
-            IsClassification4 = IsClassification4,
-            IsClassification5 = IsClassification5,
-            CopiesEndUser = CopiesEndUser,
-            CopiesGSO = CopiesGSO
-        };
+            {
+                Quantity = SelectedItemPARData.ParQty.ToString(),
+                ItemCode = SelectedItemPARData.ItemCode,
+                ItemName = SelectedItemPARData.ItemName,
+                ParDate = SelectedItemPARData.ParDate,
+                ParID = SelectedItemPARData.ParID,
+                Value = SelectedItemPARData.value,
+                Price = Price,
+                ParName = SelectedItemPARData.ParName,
+                Condition = Condition,
+                IsClassification1 = IsClassification1,
+                IsClassification2 = IsClassification2,
+                IsClassification3 = IsClassification3,
+                IsClassification4 = IsClassification4,
+                IsClassification5 = IsClassification5,
+                CopiesEndUser = CopiesEndUser,
+                CopiesGSO = CopiesGSO
+            };
 
-        // Call the server API to generate the Excel file
+        // Call the server API to generate the PDF
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
         if (response.IsSuccessStatusCode)
         {
             var fileBytes = await response.Content.ReadAsByteArrayAsync();
-            //await JSRuntime.InvokeVoidAsync("downloadFile", "surrenderData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            await JSRuntime.InvokeVoidAsync("downloadFile", "SURData.pdf", Convert.ToBase64String(fileBytes), "application/pdf");
-            Console.WriteLine("File generated and download triggered successfully.");
+            var pdfBase64 = Convert.ToBase64String(fileBytes);
+
+            // Open preview modal
+            var parameters = new ModalParameters();
+            parameters.Add("PdfBase64", pdfBase64);
+            ModalService.Show<SurPreview>("Surrender Document Preview", parameters);
         }
         else
         {
-            Console.WriteLine($"Failed to generate Excel file: {await response.Content.ReadAsStringAsync()}");
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Failed to generate PDF file: {errorContent}");
+            return;
         }
+
+        // Archive the transaction
         var archiving = new SurrenderData
             {
                 SurName = SelectedItemPARData.ParName,
@@ -208,26 +261,52 @@
         var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
         if (!archiveResponse.IsSuccessStatusCode)
         {
-            Console.WriteLine($"Failed to fetch Item data. Status: {archiveResponse.StatusCode}, Reason: {archiveResponse.ReasonPhrase}");
+            Console.WriteLine($"Failed to archive transaction. Status: {archiveResponse.StatusCode}, Reason: {archiveResponse.ReasonPhrase}");
         }
         else
         {
-			Console.WriteLine("Archive inserted successfully.");
+            Console.WriteLine("Archive inserted successfully.");
         }
 
-		var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-		if (!deleteParResponse.IsSuccessStatusCode)
-		{
-		    Console.WriteLine("Failed to delete PAR.");
-		}
+        // Delete the PAR record
+        var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+        if (!deleteParResponse.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Failed to delete PAR.");
+        }
         else
-		{
-		    Console.WriteLine("PAR deleted successfully.");
-		}
+        {
+            Console.WriteLine("PAR deleted successfully.");
+        }
     }
 
-    // Data transfer object to match the server
-    private class SurrenderData
+    public class PAR
+    {
+        public string ParID { get; set; }
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+        public string ParName { get; set; }
+        public string ParDate { get; set; }
+        public double value { get; set; }
+        public int ParQty { get; set; }
+        public string DprHeadName { get; set; }
+    }
+
+    public class Items
+    {
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+    }
+
+    public class ItemDisposal
+    {
+        public string NonServCode { get; set; }
+        public string disposalName { get; set; }
+        public string Description { get; set; }
+        public DateOnly disposalDate { get; set; }
+    }
+
+    public class SurrenderData
     {
         public string Quantity { get; set; }
         public int ItemCode { get; set; }
@@ -245,13 +324,13 @@
         public bool IsClassification5 { get; set; }
         public bool CopiesEndUser { get; set; }
         public bool CopiesGSO { get; set; }
-		public string? SurName { get; set; }
-        public string? DprName { get; set; }
-		public string? PrpName { get; set; }
-		public string? archiveDate { get; set; }
-        public string? ItemCond { get; set; }
-		public int SurQTY { get; set; }
+        public string SurName { get; set; }
+        public string PrpName { get; set; }
+        public string DprName { get; set; }
+        public string archiveDate { get; set; }
+        public string ItemCond { get; set; }
+        public int SurQTY { get; set; }
         public string Clasification { get; set; }
-		public string Copies { get; set; }
+        public string Copies { get; set; }
     }
 }

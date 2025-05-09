@@ -18,7 +18,7 @@ namespace APIFinal.Models
         public int Qty { get; set; }
         public string FundCluster { get; set; }
         public string Position { get; set; }
-        public DateOnly ICSDate { get; set; }
+        public DateOnly ICSSDate { get; set; }
         public DateOnly IcsDateReceived { get; set; }
     }
 }

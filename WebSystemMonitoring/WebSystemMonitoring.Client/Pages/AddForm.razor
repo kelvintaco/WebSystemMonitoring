@@ -20,63 +20,77 @@
 <h1>Add Transaction</h1>
 
 <RadzenForm id="form">
-    <RadzenFieldset>
-        <RadzenLabel Text="Quantity" />
-        <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" />
-        <RadzenLabel Text="Unit" Style="margin-left:20px;" />
-        <RadzenTextBox Value="@Unit" ReadOnly="true" Style="width:100px; margin-left:5px;" />
-        <RadzenLabel Text="Description" Style="margin-left:20px;" />
-        <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
-                                Placeholder="Select an Item" Required="true" Style="width:200px; margin-left:5px;" 
-                                Change="@OnItemSelected" />
-        <RadzenLabel Text="Date Acquired" Style="margin-left:20px;" />
-        <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px; margin-left:5px;" />
-        <RadzenLabel Text="Property No." Style="margin-left:20px;" />
-        <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px; margin-left:5px;" />
-        <RadzenLabel Text="Unit Value" Style="margin-left:20px;" />
-        <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px; margin-left:5px;" />
-    </RadzenFieldset>
+    <div class="main-row">
+        <div class="form-group">
+            <RadzenLabel Text="Quantity" />
+            <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" Style="width:70px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Unit" />
+            <RadzenTextBox Value="@Unit" ReadOnly="true" Style="width:100px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Description" />
+            <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
+                                    Placeholder="Select an Item" Required="true" Style="width:200px;" 
+                                    Change="@OnItemSelected" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Date Acquired" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Property No." />
+            <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Unit Value" />
+            <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px;" />
+        </div>
+    </div>
 
-    <RadzenFieldset>
-        <RadzenLabel Text="1. Classification" />
-        <div>
-            <RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment<br />
-            <RadzenCheckBox @bind-Value="IsClassification2" /> Furniture and Fixtures<br />
-            <RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment<br />
-            <RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment<br />
-            <RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment
+    <div class="form-sections">
+        <div class="left-col">
+            <RadzenLabel Text="1. Classification" />
+            <div>
+                <RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification2" /> Furniture and Fixtures<br />
+                <RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment
+            </div>
+            <RadzenLabel Text="2. Reference Check #" />
+            <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px;" />
         </div>
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="2. Reference Check #" />
-        <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px; margin-left:5px;" />
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="3. Source of Fund" />
-        <div>
-            <RadzenCheckBox @bind-Value="IsSourceOfFund1" /> GF
-            <RadzenCheckBox @bind-Value="IsSourceOfFund2" Style="margin-left:10px;" /> SEF
-            <RadzenCheckBox @bind-Value="IsSourceOfFund3" Style="margin-left:10px;" /> Trust Fund
-            <RadzenTextBox @bind-Value="TrustFundText" Placeholder="Trust Fund details" Style="width:150px; margin-left:10px;" />
+        <div class="right-col">
+            <RadzenLabel Text="3. Source of Fund" />
+            <div>
+                <RadzenCheckBox @bind-Value="IsSourceOfFund1" /> GF
+                <RadzenCheckBox @bind-Value="IsSourceOfFund2" Style="margin-left:10px;" /> SEF
+                <RadzenCheckBox @bind-Value="IsSourceOfFund3" Style="margin-left:10px;" /> Trust Fund
+                <RadzenTextBox @bind-Value="TrustFundText" Placeholder="Trust Fund details" Style="width:150px; margin-left:10px;" />
+            </div>
+            <RadzenLabel Text="4. Distribution of Copies" />
+            <div>
+                <RadzenCheckBox @bind-Value="Copies1" /> Requisition c/o Property Custodian<br />
+                <RadzenCheckBox @bind-Value="Copies2" /> GSO<br />
+                <RadzenCheckBox @bind-Value="Copies3" /> Accounting Office<br />
+                <RadzenCheckBox @bind-Value="Copies4" /> Disbursement Voucher
+            </div>
         </div>
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="4. Distribution of Copies" />
+    </div>
+
+    <div class="bottom-row">
         <div>
-            <RadzenCheckBox @bind-Value="Copies1" /> Requisition c/o Property Custodian<br />
-            <RadzenCheckBox @bind-Value="Copies2" /> GSO<br />
-            <RadzenCheckBox @bind-Value="Copies3" /> Accounting Office<br />
-            <RadzenCheckBox @bind-Value="Copies4" /> Disbursement Voucher
+            <RadzenLabel Text="Received By:" />
+            <RadzenTextBox @bind-Value="CSTName" />
         </div>
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="Received By:" />
-        <RadzenTextBox @bind-Value="CSTName" ReadOnly="false" Style="width:200px; margin-left:5px;" />
-    </RadzenFieldset>
-    <RadzenFieldset>
-        <RadzenLabel Text="Department Head:" />
-        <RadzenTextBox @bind-Value="DPRName" ReadOnly="false" Style="width:200px; margin-left:5px;" />
-    </RadzenFieldset>
+        <div>
+            <RadzenLabel Text="Department Head:" />
+            <RadzenTextBox @bind-Value="DPRName" />
+        </div>
+    </div>
+
     <input type="submit" value="Submit" @onclick="SubmitForm" style="margin-top: 20px;" />
 </RadzenForm>
 
@@ -283,7 +297,7 @@
 
         if (!result.Cancelled)
         {
-            NavigationManager.NavigateTo("/addform", forceLoad: true);
+            NavigationManager.NavigateTo("/masterlist", forceLoad: true);
         }
     }
 

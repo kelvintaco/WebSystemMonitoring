@@ -15,14 +15,14 @@ namespace APIFinal.Models
         public string Name { get; set; }
         public DateOnly dateTransferred { get; set; }
         public string Condition { get; set; }
-        public string receiveName { get; set; }
+        public string rvName { get; set; }
         public string TransferType { get; set; }
-        public string fundcluster { get; set; }
+        public string fundccl { get; set; }
         public string from { get; set; }
         public string to { get; set; }
         public string reason { get; set; }
-        public string approvedBy { get; set; }
-        public string designation { get; set; }
+        public string apprvdBy { get; set; }
+        public string designationOf { get; set; }
         public string approvedByDate { get; set; }
         public string releaseBy { get; set; }
         public string designationRelease { get; set; }
@@ -30,5 +30,7 @@ namespace APIFinal.Models
         public string receivedBy { get; set; }
         public string designationReceived { get; set; }
         public string receivedByDate { get; set; }
+        public string dateAcquired { get; set; }
+        public int Amount { get; set; }
     }
 }

@@ -1,51 +1,123 @@
 ﻿@using OfficeOpenXml
 @using System.IO
 @using Radzen.Blazor
+@using Blazored.Modal
+@using Blazored.Modal.Services
 @rendermode InteractiveAuto
 
 @inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
+@inject IModalService ModalService
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
-<script src="https://localhost:7041/static/site.js"></script>
+<script src="/static/site.js"></script>
 
 <h1>Transfer Details</h1>
 
-<div>
-    <RadzenTextBox @bind-Value="FundCluster" Placeholder="Enter Fund Cluster" />
-    <RadzenTextBox @bind-Value="FromName" Placeholder="From Name" />
-    <RadzenTextBox @bind-Value="ToName" Placeholder="To Name" />
-    <RadzenTextBox @bind-Value="ItemCondition" Placeholder="Item Condition" />
-
-    <RadzenCheckBox @bind-Value="TransferType1" />
-    <label>Transfer Type 1</label>
-    <RadzenCheckBox @bind-Value="TransferType2" />
-    <label>Transfer Type 2</label>
-    <RadzenCheckBox @bind-Value="TransferType3" />
-    <label>Transfer Type 3</label>
-    <RadzenCheckBox @bind-Value="TransferType4" />
-    <label>Transfer Type 4</label>
-
-    @if (TransferType4)
-    {
-        <RadzenTextBox @bind-Value="TransferType4Details" Placeholder="Enter details for Transfer Type 4" />
-    }
-
-    <RadzenTextArea @bind-Value="ReasonForTransfer" Placeholder="Reason for Transfer" />
-
-    <RadzenTextBox @bind-Value="ApprovedBy" Placeholder="Approved By" />
-    <RadzenDatePicker TValue="DateOnly" @bind-Value="ApprovedDate" Required="true" DateFormat="yyyy-MM-dd" />
-    <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Released By" />
-    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" Required="true" DateFormat="yyyy-MM-dd" />
-    <RadzenTextBox @bind-Value="ReceivedBy" Placeholder="Received By" />
-    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReceivedDate" Required="true" DateFormat="yyyy-MM-dd" />
-    <RadzenTextBox @bind-Value="Designation" Placeholder="Designation" />
-
-    <RadzenButton Text="Submit" Click="OnSubmit" />
+<div class="container mt-4">
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Entity Name:</label>
+            <p>@SelectedParData?.ParName</p>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Fund Cluster:</label>
+            <RadzenTextBox @bind-Value="FundCluster" Placeholder="Enter Fund Cluster" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Date:</label>
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" DateFormat="yyyy-MM-dd" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">From Accountable Officer/Agency/Fund Cluster:</label>
+            <RadzenTextBox @bind-Value="FromName" Placeholder="From Accountable Officer/Agency/Fund Cluster" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label fw-bold">To Accountable Officer/Agency/Fund Cluster:</label>
+            <RadzenTextBox @bind-Value="ToName" Placeholder="To Accountable Officer/Agency/Fund Cluster" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">PTR No.:</label>
+            <p>@SelectedParData?.ItemCode</p>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-12">
+            <label class="form-label fw-bold">Transfer Type (only check one):</label>
+            <div class="form-check">
+                <RadzenCheckBox TValue="bool" Name="transferType1" @bind-Value="TransferType1" /> Donation
+            </div>
+            <div class="form-check">
+                <RadzenCheckBox TValue="bool" Name="transferType2" @bind-Value="TransferType2" /> Relocate
+            </div>
+            <div class="form-check">
+                <RadzenCheckBox TValue="bool" Name="transferType3" @bind-Value="TransferType3" /> Reassignment
+            </div>
+            <div class="form-check d-flex align-items-center">
+                <RadzenCheckBox TValue="bool" Name="transferType4" @bind-Value="TransferType4" /> Others (specify):
+                <RadzenTextBox @bind-Value="TransferType4Details" Placeholder="Specify if Others" class="ms-2" />
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Date Acquired:</label>
+            <p>@SelectedParData?.ParDate</p>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Property No.:</label>
+            <p>@SelectedParData?.ItemCode</p>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Description:</label>
+            <p>@SelectedParData?.ItemName</p>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-bold">Condition of PPE:</label>
+            <RadzenTextBox @bind-Value="ItemCondition" Placeholder="Condition of PPE" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-12">
+            <label class="form-label fw-bold">Reason for Transfer:</label>
+            <RadzenTextArea @bind-Value="ReasonForTransfer" Placeholder="Reason for Transfer" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Approved By:</label>
+            <RadzenTextBox @bind-Value="ApprovedBy" Placeholder="Printed Name" />
+            <RadzenTextBox @bind-Value="Designation" Placeholder="Designation" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="ApprovedDate" DateFormat="yyyy-MM-dd" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Released/Issued By:</label>
+            <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Printed Name" />
+            <RadzenTextBox @bind-Value="designationRelease" Placeholder="Designation" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" DateFormat="yyyy-MM-dd" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Received By:</label>
+            <RadzenTextBox @bind-Value="ReceivedBy" Placeholder="Printed Name" />
+            <RadzenTextBox @bind-Value="designationReceived" Placeholder="Designation" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="ReceivedDate" DateFormat="yyyy-MM-dd" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-12">
+            <RadzenButton Text="Submit" Click="OnSubmit" ButtonStyle="ButtonStyle.Primary" />
+        </div>
+    </div>
 </div>
+
+<CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
     [Parameter] public string SelectedPar { get; set; }
@@ -82,6 +154,10 @@
     private string? Condition;
     public string? receiveName;
     private string? TransferType;
+    public string dateAcquired;
+    public string designationRelease;
+    public string designationReceived;
+    public string fundccl;
 
     protected override async Task OnInitializedAsync()
     {
@@ -172,33 +248,46 @@
             return;
         }
 
+        if (string.IsNullOrEmpty(ItemCondition) || string.IsNullOrEmpty(ReasonForTransfer) || string.IsNullOrEmpty(ApprovedBy) ||
+            string.IsNullOrEmpty(ReleasedBy) || string.IsNullOrEmpty(ReceivedBy) || string.IsNullOrEmpty(Designation))
+        {
+            Console.WriteLine("Required fields (ItemCondition, ReasonForTransfer, ApprovedBy, ReleasedBy, ReceivedBy, Designation) are missing.");
+            return;
+        }
+
         string transferType = GetTransferType();
+        if (transferType == "None")
+        {
+            Console.WriteLine("A transfer type must be selected.");
+            return;
+        }
 
         var transfer = new TransferData
-			{
-            //PtrId = await GeneratePrtId(),
-			    ItemCode = SelectedParData.ItemCode,
-			    Description = SelectedParData.ItemName,
-                CstCode = SelectedCstData?.CSTCode,
-			    Name = SelectedParData.ParName,
-                dateTransferred = DateOnly.FromDateTime(DateTime.Now),
-			    Condition = ItemCondition,
-			    receiveName = ReceivedBy,
-			    TransferType = transferType,
-				approvedBy = ApprovedBy,
+            {
+                ItemCode = SelectedParData.ItemCode,
+                Description = SelectedParData.ItemName,
+                CstCode = SelectedCstData.CSTCode,
+                Name = SelectedParData.ParName,
+                DateTransferred = Date,
+                Condition = ItemCondition,
+                rvName = ReceivedBy,
+                TransferType = transferType,
+                apprvdBy = ApprovedBy,
                 approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
-				designation = Designation,
-				designationReceived = Designation,
-				designationRelease = Designation,
-				from = FromName,
-				FundCluster = FundCluster,
-				reason = ReasonForTransfer,
-				receivedBy = ReceivedBy,
-				receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
-				releaseBy = ReleasedBy,
-				releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
-				to = ToName
-			};
+                designationOf = Designation,
+                designationReceived = Designation,
+                designationRelease = Designation,
+                from = FromName,
+                fundccl = FundCluster,
+                reason = ReasonForTransfer,
+                receivedBy = ReceivedBy,
+                receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
+                releaseBy = ReleasedBy,
+                releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
+                to = ToName,
+                dateAcquired = SelectedParData.ParDate,
+                Amount = SelectedParData.ParQty
+            };
 
         var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transfer);
         if (insertResponse.IsSuccessStatusCode)
@@ -206,44 +295,56 @@
             Console.WriteLine("Transfer data inserted successfully.");
 
             var transferexcel = new TransferData
-            {
+                {
                     ItemCode = SelectedParData.ItemCode,
                     Description = SelectedParData.ItemName,
                     CstCode = SelectedCstData.CSTCode,
                     Name = SelectedParData.ParName,
-                    dateTransferred = DateOnly.FromDateTime(DateTime.Now),
+                    DateTransferred = Date,
                     Condition = ItemCondition,
-                    receiveName = ReceivedBy,
+                    ReceiveName = ReceivedBy,
+					rvName = ReceivedBy,
                     TransferType = transferType,
                     FundCluster = FundCluster,
+					fundccl = FundCluster,
                     FromName = FromName,
+					from = FromName,
                     ToName = ToName,
+                    to = ToName,
                     ReasonForTransfer = ReasonForTransfer,
-                    ApprovedBy = ApprovedBy,            
-                    ReleasedBy = ReleasedBy,            
-                    Designation = Designation
-            };
+					reason = ReasonForTransfer,
+                    ApprovedBy = ApprovedBy,
+					apprvdBy = ApprovedBy,
+                    ReleasedBy = ReleasedBy,
+					releaseBy = ReleasedBy,
+                    receivedBy = ReceivedBy,
+                    Designation = Designation,
+					designationOf = Designation,
+                    approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
+                    releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
+                    receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
+                    dateAcquired = SelectedParData.ParDate,
+                    Amount = SelectedParData.ParQty,
+                    designationRelease = designationRelease,
+                    designationReceived = designationReceived
+                };
 
-            // Generate Excel file
+            // Generate PDF file
             var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-transfer", transferexcel);
             if (excelResponse.IsSuccessStatusCode)
             {
                 var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
-                try
-                {
-                    //await JSRuntime.InvokeVoidAsync("downloadFile", "TransferData.xlsx", Convert.ToBase64String(fileBytes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                    await JSRuntime.InvokeVoidAsync("downloadFile", "TransData.pdf", Convert.ToBase64String(fileBytes), "application/pdf");
-                    Console.WriteLine("File generated and download triggered successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to trigger download: {ex.Message}");
-                }
+                var pdfBase64 = Convert.ToBase64String(fileBytes);
+
+                // Open preview modal
+                var parameters = new ModalParameters();
+                parameters.Add("PdfBase64", pdfBase64);
+                ModalService.Show<TransferPreview>("Transfer Document Preview", parameters);
             }
             else
             {
                 var errorContent = await excelResponse.Content.ReadAsStringAsync();
-                Console.WriteLine($"Failed to generate Excel file. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
+                Console.WriteLine($"Failed to generate PDF file. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
             }
         }
         else
@@ -252,29 +353,6 @@
             Console.WriteLine($"Failed to insert transfer data. Status: {insertResponse.StatusCode}, Reason: {insertResponse.ReasonPhrase}, Content: '{errorContent}'");
         }
     }
-
-    // private async Task<int> GeneratePrtId()
-    // {
-    //     var random = new Random();
-    //     var existingPrtCodes = await GetExistingPrtId();
-
-    //     while (true)
-    //     {
-    //         var randomCode = random.Next(100, 1000);
-    //         if (!existingPrtCodes.Contains(randomCode))
-    //         {
-    //             return randomCode;
-    //         }
-    //     }
-    // }
-
-    // private async Task<List<int>> GetExistingPrtId()
-    // {
-    //     var response = await HttpClient.GetAsync("https://localhost:7041/api/Transfer/GetLatest");
-    //     var json = await response.Content.ReadAsStringAsync();
-    //     var existingPrtCodes = JsonConvert.DeserializeObject<List<int>>(json);
-    //     return existingPrtCodes;
-    // }
 
     private string GetTransferType()
     {
@@ -285,31 +363,51 @@
         return "None"; // Default if no transfer type is selected
     }
 
+    public class PAR
+    {
+        public string ParID { get; set; }
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+        public string ParName { get; set; }
+        public string ParDate { get; set; }
+        public int ParQty { get; set; }
+    }
+
+    public class Items
+    {
+        public int ItemCode { get; set; }
+        public string ItemName { get; set; }
+    }
+
+    public class Custodian
+    {
+        public string CSTCode { get; set; }
+    }
+
     public class TransferData
     {
         public int PtrId { get; set; }
         public int ItemCode { get; set; }
-        public string? Description { get; set; }
-        public string? CstCode { get; set; }
-        public string? Name { get; set; }
-        public DateOnly dateTransferred { get; set; }
-        public string? Condition { get; set; }
-        public string? TransferType { get; set; }
-        public string? FundCluster { get; set; }
-        public string? FromName { get; set; }
-        public string? ToName { get; set; }
-        public string? ReasonForTransfer { get; set; }
-        public string? ApprovedBy { get; set; }
-        public string? ReleasedBy { get; set; }
-        public string? Designation { get; set; }
-		public string? receiveName { get; set; }
-
-        public string fundcluster { get; set; }
+        public string Description { get; set; }
+        public string CstCode { get; set; }
+        public string Name { get; set; }
+        public DateOnly DateTransferred { get; set; }
+        public string Condition { get; set; }
+        public string ReceiveName { get; set; }
+        public string TransferType { get; set; }
+        public string FundCluster { get; set; }
+        public string FromName { get; set; }
+        public string ToName { get; set; }
+        public string ReasonForTransfer { get; set; }
+        public string ApprovedBy { get; set; }
+        public string ReleasedBy { get; set; }
+        public string Designation { get; set; }
+        public string fundccl { get; set; }
         public string from { get; set; }
         public string to { get; set; }
         public string reason { get; set; }
-        public string approvedBy { get; set; }
-        public string designation { get; set; }
+        public string apprvdBy { get; set; }
+        public string designationOf { get; set; }
         public string approvedByDate { get; set; }
         public string releaseBy { get; set; }
         public string designationRelease { get; set; }
@@ -317,6 +415,8 @@
         public string receivedBy { get; set; }
         public string designationReceived { get; set; }
         public string receivedByDate { get; set; }
-
+        public string dateAcquired { get; set; }
+        public int Amount { get; set; }
+        public string rvName { get; set; }
     }
 }

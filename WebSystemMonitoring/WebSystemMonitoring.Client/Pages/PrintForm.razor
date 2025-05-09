@@ -1,0 +1,100 @@
+﻿@using Radzen.Blazor
+@using MatBlazor
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using System.Globalization
+@using Newtonsoft.Json
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Text
+@using System.Text.Json
+@using OfficeOpenXml
+@using System.IO
+@page "/printform"
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+@inject IModalService ModalService
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h3>Print Forms</h3>
+
+<div class="mt-4 border p-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="Code">Code</label>
+            <RadzenFieldset>
+                <RadzenLabel Text="ParID" />
+                <RadzenDropDownDataGrid @bind-Value="SelectedPar" Data="ParIDList" AllowClear="true" AllowFiltering="true" Placeholder="Select an ID" Style="position: absolute;margin-bottom:20px" />
+            </RadzenFieldset>
+        </div>
+        <div class="col-md-6">
+            <label for="formtype">Form Type</label>
+            <RadzenFieldset>
+                <RadzenLabel Text="Form Type" />
+                <RadzenDropDownDataGrid @bind-Value="SelectedFormType" Data="FormTypeList" AllowClear="false" AllowFiltering="false" Placeholder="Select a Form Type" Style="position: absolute;margin-bottom:20px" />
+            </RadzenFieldset>
+        </div>
+    </div>
+    <button class="btn btn-primary mt-2" @onclick="ShowModal">Confirm</button>
+</div>
+
+<CascadingBlazoredModal></CascadingBlazoredModal>
+
+@code {
+    private List<string>? ParIDList;
+    private List<string>? FormTypeList = new List<string> { "PAR", "ICS", "Surrender", "Transfer" };
+
+    private string? SelectedPar;
+    private string? SelectedFormType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load ParID list for dropdown
+        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
+        if (paridresponse.IsSuccessStatusCode)
+        {
+            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+        }
+        else
+        {
+            ParIDList = new List<string>();
+        }
+    }
+
+    private void ShowModal()
+    {
+        if (SelectedFormType == "PAR")
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
+            ModalService.Show<PARModal>("PAR Details", parameters);
+        }
+        else if (SelectedFormType == "ICS")
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
+            ModalService.Show<ICSModal>("ICS Details", parameters);
+        }
+        else if (SelectedFormType == "Surrender")
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
+            ModalService.Show<SurModal>("Surrender Details", parameters);
+        }
+        else if (SelectedFormType == "Transfer")
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("SelectedPar", SelectedPar);
+            var options = new ModalOptions
+                {
+                    Size = ModalSize.Automatic
+                };
+            ModalService.Show<TransModal>("Transfer Details", parameters, options);
+        }
+    }
+}

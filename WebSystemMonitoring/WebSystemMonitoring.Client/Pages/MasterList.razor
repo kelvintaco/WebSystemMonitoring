@@ -57,27 +57,6 @@
     </div>
 </div>
 
-<div class="mt-4 border p-4">
-    <h4>Print Forms</h4>
-    <div class="row">
-        <div class="col-md-6">
-            <label for="Code">Code</label>
-            <RadzenFieldset>
-                <RadzenLabel Text="ParID" />
-                <RadzenDropDownDataGrid @bind-Value="SelectedPar" Data="ParIDList" AllowClear="true" AllowFiltering="true" Placeholder="Select an ID" Style="position: absolute;margin-bottom:20px" />
-            </RadzenFieldset>
-        </div>
-        <div class="col-md-6">
-            <label for="formtype">Form Type</label>
-            <RadzenFieldset>
-                <RadzenLabel Text="Form Type" />
-                <RadzenDropDownDataGrid @bind-Value="SelectedFormType" Data="FormTypeList" AllowClear="false" AllowFiltering="false" Placeholder="Select a Form Type" Style="position: absolute;margin-bottom:20px" />
-            </RadzenFieldset>
-        </div>
-    </div>
-    <button class="btn btn-primary mt-2" @onclick="ShowModal">Confirm</button>
-</div>
-
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
@@ -98,15 +77,7 @@
     }
 
     private List<PAR>? TransactList;
-    private List<string>? ParIDList;
-    private List<string>? FormTypeList = new List<string> { "PAR", "ICS", "Surrender", "Transfer" };
-
-    private string? SelectedPar;
-    private string? SelectedFormType;
-
     private RadzenDataGrid<PAR> grid;
-
-    private string? AdditionalDetails;
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,45 +91,6 @@
         else
         {
             TransactList = new List<PAR>();
-        }
-
-        // Load ParID list for dropdown
-        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
-        if (paridresponse.IsSuccessStatusCode)
-        {
-            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
-        }
-        else
-        {
-            ParIDList = new List<string>();
-        }
-    }
-
-    private void ShowModal()
-    {
-        if (SelectedFormType == "PAR")
-        {
-            var parameters = new ModalParameters();
-            parameters.Add("SelectedPar", SelectedPar);
-            ModalService.Show<PARModal>("PAR Details", parameters);
-        }
-        else if (SelectedFormType == "ICS")
-        {
-            var parameters = new ModalParameters();
-            parameters.Add("SelectedPar", SelectedPar);
-            ModalService.Show<ICSModal>("ICS Details", parameters);
-        }
-        else if (SelectedFormType == "Surrender")
-        {
-            var parameters = new ModalParameters();
-            parameters.Add("SelectedPar", SelectedPar);
-            ModalService.Show<SurModal>("Surrender Details", parameters);
-        }
-        else if (SelectedFormType == "Transfer")
-        {
-            var parameters = new ModalParameters();
-            parameters.Add("SelectedPar", SelectedPar);
-            ModalService.Show<TransModal>("Transfer Details", parameters);
         }
     }
 
@@ -191,45 +123,10 @@
 
     private void ShowAddForm()
     {
-        ModalService.Show<AddForm>("Add Item");
+        var options = new ModalOptions
+            {
+                Size = ModalSize.Automatic
+            };
+        ModalService.Show<AddForm>("Add Item", options);
     }
-
-    // private void GenerateParFile()
-    // {
-    //     var selectedPar = TransactList?.FirstOrDefault(p => p.ParID == SelectedPar);
-    //     if (selectedPar == null) return;
-    //
-    //     var existingFilePath = @"C:\Users\Admin\Downloads\various-form.xlsx";
-    //     var newFilePath = @"C:\Users\Admin\Downloads\PARData.xlsx";
-    //
-    //     var existingFile = new System.IO.FileInfo(existingFilePath);
-    //     var newFile = new System.IO.FileInfo(newFilePath);
-    //
-    //     if (!existingFile.Exists)
-    //     {
-    //         Console.WriteLine("Template file not found!");
-    //         return;
-    //     }
-    //     using (var package = new ExcelPackage(existingFile))
-    //     {
-    //         var worksheet = package.Workbook.Worksheets["PAR"];
-    //         if (worksheet == null)
-    //         {
-    //             Console.WriteLine("Worksheet 'PAR' not found!");
-    //             return;
-    //         }
-    //
-    //         worksheet.Cells["F6"].Value = selectedPar.ParID;
-    //         worksheet.Cells["E9"].Value = selectedPar.ItemCode;
-    //         worksheet.Cells["C9"].Value = selectedPar.ItemName;
-    //         worksheet.Cells["E40"].Value = selectedPar.ParName;
-    //         worksheet.Cells["C36"].Value = selectedPar.ParDate;
-    //         worksheet.Cells["C35"].Value = selectedPar.refNo;
-    //         worksheet.Cells["A9"].Value = selectedPar.ParQty;
-    //
-    //         worksheet.Cells["D47"].Value = "Juan Dela Cruz";
-    //
-    //         package.SaveAs(newFile);
-    //     }
-    // }
 }
