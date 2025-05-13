@@ -23,13 +23,14 @@
 
 <h1>Master List</h1>
 
-<div class="mt-4">
-    <h5>Add Item</h5>
+<div class="mt-4 border p-4">
+    <h5>Add Entry or Item</h5>
     <div class="column">
-        <button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Item</button>
+        <button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Entry</button>
+		<button class="btn btn-primary mt-2" @onclick="ShowAddItem">Add Item</button>
     </div>
 </div>
-<div style="width: 70%;">
+<div style="width: 90%;">
     <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
         <Columns>
             <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="100px" />
@@ -127,6 +128,14 @@
             {
                 Size = ModalSize.Automatic
             };
-        ModalService.Show<AddForm>("Add Item", options);
+        ModalService.Show<AddForm>("", options);
     }
+	private void ShowAddItem()
+	{
+		// var options = new ModalOptions
+		// 	{
+		// 		Size = ModalSize.Automatic
+		// 	};
+		ModalService.Show<AddItem>("Add Item");
+	}
 }
