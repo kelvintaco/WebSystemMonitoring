@@ -3,9 +3,12 @@
 
 @inject HttpClient HttpClient
 
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+
 <h1>ItemList</h1>
 
-<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_itemlist" TItem="Items" AllowSorting="true" AllowPaging="true" PageSize="10">
+<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_itemlist" TItem="Items" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
     <Columns>
         <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
         <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />

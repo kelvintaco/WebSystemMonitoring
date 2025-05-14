@@ -200,8 +200,6 @@
                 return;
             }
         }
-
-        // Prepare data for the server
         var surrenderData = new SurrenderData
             {
                 Quantity = SelectedItemPARData.ParQty.ToString(),
@@ -221,18 +219,20 @@
                 CopiesEndUser = CopiesEndUser,
                 CopiesGSO = CopiesGSO
             };
-
-        // Call the server API to generate the PDF
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
         if (response.IsSuccessStatusCode)
         {
             var fileBytes = await response.Content.ReadAsByteArrayAsync();
             var pdfBase64 = Convert.ToBase64String(fileBytes);
 
-            // Open preview modal
             var parameters = new ModalParameters();
             parameters.Add("PdfBase64", pdfBase64);
-            ModalService.Show<SurPreview>("Surrender Document Preview", parameters);
+            var options = new ModalOptions
+                {
+                    HideCloseButton = true,
+                    DisableBackgroundCancel = true
+                };
+            ModalService.Show<SurPreview>("Preview", parameters, options);
         }
         else
         {
@@ -241,7 +241,6 @@
             return;
         }
 
-        // Archive the transaction
         var archiving = new SurrenderData
             {
                 SurName = SelectedItemPARData.ParName,
@@ -267,7 +266,6 @@
             Console.WriteLine("Archive inserted successfully.");
         }
 
-        // Delete the PAR record
         var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
         if (!deleteParResponse.IsSuccessStatusCode)
         {

@@ -84,7 +84,7 @@
 
             <div class="row">
                 <div class="col-12">
-                    <RadzenButton Text="Generate ICS Form" Click="GenerateExcel" ButtonStyle="ButtonStyle.Primary" class="w-100" />
+                    <RadzenButton Text="Generate ICS Form" Click="GenerateExcel" ButtonStyle="ButtonStyle.Primary" class="w-100" Disabled="@_isGenerating" />
                 </div>
             </div>
         </div>
@@ -102,6 +102,8 @@
     private double _Price;
     private int _Life;
     private string? _Position;
+
+    private bool _isGenerating;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,6 +178,14 @@
             Console.WriteLine("No PAR data available to generate ICS form.");
             return;
         }
+        if (_isGenerating)
+        {
+            Console.WriteLine("GenerateExcel is already in progress. Ignoring duplicate call.");
+            return;
+        }
+
+        _isGenerating = true;
+        Console.WriteLine("Starting GenerateExcel");
 
         if (string.IsNullOrEmpty(_Position))
         {
@@ -183,60 +193,52 @@
             return;
         }
 
-        // Save ICS data to the database
-        var icsInput = new ICSData
-            {
-                ItemCode = SelectedItemPARData.ItemCode,
-                Description = SelectedItemPARData.ItemName,
-                CSTCode = SelectedCstData?.CSTCode,
-                ICSName = Name,
-                ICSPrice = _Price,
-                LifeTime = _Life,
-                Qty = SelectedItemPARData.ParQty,
-                IcsDate = DateOnly.FromDateTime(DateTime.Now),
-                FundCluster = "GF",
-                Position = _Position
-            };
+        var icsData = new ICSData
+        {
+            ItemCode = SelectedItemPARData.ItemCode,
+            Description = SelectedItemPARData.ItemName,
+            CSTCode = SelectedCstData?.CSTCode,
+            ICSName = Name,
+            ICSPrice = _Price,
+            LifeTime = _Life,
+            Qty = SelectedItemPARData.ParQty,
+            IcsDate = DateOnly.FromDateTime(DateTime.Now),
+            FundCluster = "GF",
+            Position = _Position
+        };
 
-        var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsInput);
+        // First save the ICS data
+        var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
         if (!icsResponse.IsSuccessStatusCode)
         {
             Console.WriteLine($"Failed to save ICS data. Status: {icsResponse.StatusCode}, Reason: {icsResponse.ReasonPhrase}");
+            _isGenerating = false;
             return;
         }
 
-        // Generate ICS PDF for preview
-        var icsData = new ICSData
-            {
-                ICSID = 0,
-                ItemCode = SelectedItemPARData.ItemCode,
-                Description = SelectedItemPARData.ItemName,
-                CSTCode = SelectedCstData?.CSTCode,
-                ICSName = Name,
-                ICSPrice = _Price,
-                LifeTime = _Life,
-                Qty = SelectedItemPARData.ParQty,
-                IcsDate = DateOnly.FromDateTime(DateTime.Now),
-                Position = _Position,
-                FundCluster = "GF"
-            };
-
+        // Then generate the Excel/PDF
         var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-ics", icsData);
         if (excelResponse.IsSuccessStatusCode)
         {
             var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
             var pdfBase64 = Convert.ToBase64String(fileBytes);
 
-            // Open preview modal
             var parameters = new ModalParameters();
             parameters.Add("PdfBase64", pdfBase64);
-            ModalService.Show<ICSPreview>("ICS Document Preview", parameters);
+            var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
+            };
+            ModalService.Show<ICSPreview>("Preview", parameters, options);
         }
         else
         {
             var errorContent = await excelResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"Failed to generate ICS PDF. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
         }
+
+        _isGenerating = false;
     }
 
     public class PAR

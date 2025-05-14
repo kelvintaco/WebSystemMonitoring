@@ -60,8 +60,6 @@
         </RadzenForm>
 </div>
 
-<CascadingBlazoredModal></CascadingBlazoredModal>
-
 @code {
     [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; } = default!;
     private List<string> Item;
@@ -102,7 +100,7 @@
             if (response.IsSuccessStatusCode)
             {
                 Logger.LogInformation("Item added successfully.");
-                NavigationManager.NavigateTo("/masterlist", forceLoad: true);
+				await ShowSuccessModal();
             }
             else
             {
@@ -113,6 +111,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error in FormSubmit");
+			await ShowValidationErrorModal();
         }
     }
 
@@ -137,7 +136,7 @@
             };
 
         var parameters = new ModalParameters();
-        var modal = ModalService.Show<SuccessAddForm>("", parameters, options);
+        var modal = ModalService.Show<SuccessAddItem>("", parameters, options);
         var result = await modal.Result;
 
         if (!result.Cancelled)

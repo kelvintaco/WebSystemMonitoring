@@ -54,7 +54,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load ParID list for dropdown
         var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
         if (paridresponse.IsSuccessStatusCode)
         {

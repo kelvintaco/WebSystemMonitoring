@@ -66,7 +66,6 @@
         isLoading = true;
         try
         {
-            // Fetch PAR data
             var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
             if (response.IsSuccessStatusCode)
             {
@@ -84,7 +83,6 @@
                 return;
             }
 
-            // Generate PDF for preview
             await GeneratePdfPreview();
         }
         catch (Exception ex)
@@ -103,7 +101,6 @@
 
         try
         {
-            // Parse Classification
             var classifications = SelectedParData.Classification?.Split(", ") ?? Array.Empty<string>();
             bool isClassification1 = classifications.Contains("Office Equipment");
             bool isClassification2 = classifications.Contains("Furniture and Fixtures");
@@ -111,7 +108,6 @@
             bool isClassification4 = classifications.Contains("Other Machinery & Equipment");
             bool isClassification5 = classifications.Contains("Communication Equipment");
 
-            // Parse FundCls
             var fundTypes = SelectedParData.FundCls?.Split(", ") ?? Array.Empty<string>();
             string fundType = fundTypes.FirstOrDefault() ?? "None";
             if (fundType.StartsWith("Trust Fund:"))
@@ -123,14 +119,12 @@
                 fundType = "Trust Fund";
             }
 
-            // Parse SourceCopies
             var sourceCopies = SelectedParData.SourceCopies?.Split(", ") ?? Array.Empty<string>();
             bool copies1 = sourceCopies.Contains("Requisition c/o Property Custodian");
             bool copies2 = sourceCopies.Contains("GSO");
             bool copies3 = sourceCopies.Contains("Accounting Office");
             bool copies4 = sourceCopies.Contains("Disbursement Voucher");
 
-            // Prepare ParData for API
             var parData = new ParData
             {
                 ParID = SelectedParData.ParID,
@@ -154,7 +148,6 @@
                 Copies4 = copies4
             };
 
-            // Call the server API to generate the PDF
             var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-par", parData);
             if (response.IsSuccessStatusCode)
             {
@@ -208,7 +201,6 @@
         await ModalInstance.CloseAsync();
     }
 
-    // PAR class to match the database structure
     private class PAR
     {
         public string? ParID { get; set; }
@@ -225,7 +217,6 @@
         public string? DprHeadName { get; set; }
     }
 
-    // ParData class to match the server API
     private class ParData
     {
         public string? ParID { get; set; }

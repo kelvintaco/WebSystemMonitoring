@@ -339,7 +339,12 @@
                 // Open preview modal
                 var parameters = new ModalParameters();
                 parameters.Add("PdfBase64", pdfBase64);
-                ModalService.Show<TransferPreview>("Transfer Document Preview", parameters);
+				var options = new ModalOptions
+					{
+						HideCloseButton = true,
+						DisableBackgroundCancel = true
+					};
+                ModalService.Show<TransferPreview>("Preview", parameters, options);
             }
             else
             {

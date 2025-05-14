@@ -1,6 +1,8 @@
 @using Blazored.Modal
 @using Blazored.Modal.Services
 
+@inject NavigationManager NavigationManager
+
 <div class="text-center p-4">
     <h4 class="text-success mb-4">Item Added Successfully!</h4>
     <p>The item has been added to the system.</p>
@@ -13,5 +15,6 @@
     private void CloseModal()
     {
         BlazoredModal.CloseAsync(ModalResult.Ok(true));
+        NavigationManager.NavigateTo("/itemlist", forceLoad: true);
     }
 } 

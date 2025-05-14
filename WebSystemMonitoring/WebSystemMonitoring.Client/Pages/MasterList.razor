@@ -24,10 +24,10 @@
 <h1>Master List</h1>
 
 <div class="mt-4 border p-4">
-    <h5>Add Entry or Item</h5>
+    <h5>Add new Entry or Item</h5>
     <div class="column">
         <button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Entry</button>
-		<button class="btn btn-primary mt-2" @onclick="ShowAddItem">Add Item</button>
+        <button class="btn btn-primary mt-2" @onclick="ShowAddItem">Add Item</button>
     </div>
 </div>
 <div style="width: 90%;">
@@ -99,7 +99,7 @@
     {
         var options = new ModalOptions
             {
-                Class = "custom-large-modal"
+                Size = ModalSize.Automatic
             };
         ModalService.Show<SurrenderTableModal>("Surrender Records", options);
     }
@@ -108,7 +108,7 @@
     {
         var options = new ModalOptions
             {
-                Class = "custom-large-modal"
+                Size = ModalSize.Automatic
             };
         ModalService.Show<TransferTableModal>("Transfer Records", options);
     }
@@ -117,7 +117,7 @@
     {
         var options = new ModalOptions
             {
-                Class = "custom-large-modal"
+                Size = ModalSize.Automatic
             };
         ModalService.Show<ICSTableModal>("ICS Records", options);
     }
@@ -126,16 +126,19 @@
     {
         var options = new ModalOptions
             {
-                Size = ModalSize.Automatic
+                Size = ModalSize.Automatic,
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
             };
         ModalService.Show<AddForm>("", options);
     }
-	private void ShowAddItem()
-	{
-		// var options = new ModalOptions
-		// 	{
-		// 		Size = ModalSize.Automatic
-		// 	};
-		ModalService.Show<AddItem>("Add Item");
+    private void ShowAddItem()
+    {
+        var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
+            };
+        ModalService.Show<AddItem>("", options);
 	}
 }

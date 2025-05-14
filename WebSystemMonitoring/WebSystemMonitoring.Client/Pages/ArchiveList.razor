@@ -3,9 +3,12 @@
 
 @inject HttpClient HttpClient
 
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+
 <h1>Archive List</h1>
 
-<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_archivelist" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" PageSize="10">
+<RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_archivelist" TItem="ArchivedTransactions" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
     <Columns>
         <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="archiveID" />
         <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="SurName" />
@@ -21,7 +24,7 @@
 <p></p>
 
 <h1>Item Disposal</h1>
-<RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowPaging="true" PageSize="10">
+<RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
     <Columns>
         <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="NonServCode" />
         <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="disposalName" />
