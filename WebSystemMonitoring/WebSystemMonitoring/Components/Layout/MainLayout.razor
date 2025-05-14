@@ -1,14 +1,21 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    @if (!IsHomePage())
+    {
+        <div class="sidebar">
+            <NavMenu />
         </div>
+    }
+
+    <main class="@(IsHomePage() ? "full-width" : "")">
+        @if (!IsHomePage())
+        {
+            <div class="top-row px-4">
+                @* <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a> *@
+            </div>
+        }
 
         <article class="content px-4">
             @Body
@@ -23,3 +30,12 @@
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
+
+@code {
+    private bool IsHomePage()
+    {
+        var uri = NavigationManager.Uri;
+        return uri.EndsWith("/", StringComparison.OrdinalIgnoreCase) ||
+               uri.EndsWith("/index", StringComparison.OrdinalIgnoreCase);
+    }
+}
