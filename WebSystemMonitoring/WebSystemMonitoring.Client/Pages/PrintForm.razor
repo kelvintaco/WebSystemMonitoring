@@ -21,29 +21,92 @@
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
-<h3>Print Forms</h3>
+<div class="container mx-auto py-8">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3 mb-6">
+        <i class="fas fa-print text-blue-700"></i>
+        Print Forms
+    </h1>
 
-<div class="mt-4 border p-4">
-    <div class="row">
-        <div class="col-md-6">
-            <label for="Code">Code</label>
-            <RadzenFieldset>
-                <RadzenLabel Text="ParID" />
-                <RadzenDropDownDataGrid @bind-Value="SelectedPar" Data="ParIDList" AllowClear="true" AllowFiltering="true" Placeholder="Select an ID" Style="position: absolute;margin-bottom:20px" />
-            </RadzenFieldset>
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-hashtag text-blue-600 mr-2"></i>
+                        PAR ID
+                    </label>
+                    <div class="w-full">
+                        <RadzenDropDownDataGrid @bind-Value="SelectedPar"
+                                                Data="ParIDList"
+                                                AllowClear="true"
+                                                AllowFiltering="true"
+                                                Placeholder="Select an ID"
+                                                Class="w-full rounded-lg border-gray-300 shadow-sm" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>
+                        Form Type
+                    </label>
+                    <div class="w-full">
+                        <RadzenDropDownDataGrid @bind-Value="SelectedFormType"
+                                                Data="FormTypeList"
+                                                AllowClear="false"
+                                                AllowFiltering="false"
+                                                Placeholder="Select a Form Type"
+                                                Class="w-full rounded-lg border-gray-300 shadow-sm" />
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <label for="formtype">Form Type</label>
-            <RadzenFieldset>
-                <RadzenLabel Text="Form Type" />
-                <RadzenDropDownDataGrid @bind-Value="SelectedFormType" Data="FormTypeList" AllowClear="false" AllowFiltering="false" Placeholder="Select a Form Type" Style="position: absolute;margin-bottom:20px" />
-            </RadzenFieldset>
+
+        <div class="mt-6 flex justify-end">
+            <button @onclick="ShowModal"
+                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-black font-medium py-2 px-4 rounded-lg transition duration-200">
+                <i class="fas fa-check"></i>
+                Confirm
+            </button>
         </div>
     </div>
-    <button class="btn btn-primary mt-2" @onclick="ShowModal">Confirm</button>
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
+
+<style>
+    /* Custom styles for Radzen components */
+    ::deep .rz-dropdown {
+        width: 100%;
+        border-radius: 0.5rem;
+        border-color: #e5e7eb;
+    }
+
+        ::deep .rz-dropdown:hover {
+            border-color: #3b82f6;
+        }
+
+    ::deep .rz-dropdown-panel {
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    ::deep .rz-dropdown-item {
+        padding: 0.5rem 1rem;
+    }
+
+        ::deep .rz-dropdown-item:hover {
+            background-color: #f3f4f6;
+        }
+
+    ::deep .rz-dropdown-filter {
+        border-radius: 0.375rem;
+        border-color: #e5e7eb;
+        margin: 0.5rem;
+    }
+</style>
 
 @code {
     private List<string>? ParIDList;

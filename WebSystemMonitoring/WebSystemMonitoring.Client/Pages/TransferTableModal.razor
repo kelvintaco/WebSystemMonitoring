@@ -8,38 +8,46 @@
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
-<h1>TransferTableModal</h1>
-
-@if (IsLoading)
-{
-    <div class="spinner-border" role="status">
+<h1>Transfer Table</h1>
+<RadzenDataGrid class="transfermodal" @ref="grid" Data="@TransferList" TItem="Transfer" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="Transfer" Property="PrtId" Title="PRT ID" />
+        <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Item Code" />
+        <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
+        <RadzenDataGridColumn TItem="Transfer" Property="CstCode" Title="CST Code" />
+        <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
+        <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
+        <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
+        <RadzenDataGridColumn TItem="Transfer" Property="rvName" Title="Receive Name" />
+        <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="Transfer Type" />
+        <RadzenDataGridColumn TItem="Transfer" Property="fundccl" Title="Fund CCL" />
+        <RadzenDataGridColumn TItem="Transfer" Property="from" Title="From" />
+        <RadzenDataGridColumn TItem="Transfer" Property="to" Title="To" />
+        <RadzenDataGridColumn TItem="Transfer" Property="reason" Title="Reason" />
+        <RadzenDataGridColumn TItem="Transfer" Property="apprvdBy" Title="Approved By" />
+        <RadzenDataGridColumn TItem="Transfer" Property="designationOf" Title="Designation Of" />
+        <RadzenDataGridColumn TItem="Transfer" Property="approvedByDate" Title="Approved By Date" />
+        <RadzenDataGridColumn TItem="Transfer" Property="releaseBy" Title="Released By" />
+        <RadzenDataGridColumn TItem="Transfer" Property="designationRelease" Title="Designation Release" />
+        <RadzenDataGridColumn TItem="Transfer" Property="releaseByDate" Title="Release By Date" />
+        <RadzenDataGridColumn TItem="Transfer" Property="receivedBy" Title="Received By" />
+        <RadzenDataGridColumn TItem="Transfer" Property="designationReceived" Title="Designation Received" />
+        <RadzenDataGridColumn TItem="Transfer" Property="receivedByDate" Title="Received By Date" />
+        <RadzenDataGridColumn TItem="Transfer" Property="dateAcquired" Title="Date Acquired" />
+        <RadzenDataGridColumn TItem="Transfer" Property="Amount" Title="Amount" />
+    </Columns>
+</RadzenDataGrid>
+<div class="button-row" style="margin-top: 20px;">
+        <RadzenButton ButtonType="ButtonType.Button" Text="Close" Click="CloseModal" Variant="Variant.Text" />
     </div>
-}
-else
-{
-    <RadzenDataGrid class="transfermodal" @ref="grid" Data="@TransferList" TItem="Transfer" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
-        <Columns>
-            <RadzenDataGridColumn TItem="Transfer" Property="PrtId" Title="PrtId" />
-            <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="ItemCode" />
-            <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
-            <RadzenDataGridColumn TItem="Transfer" Property="CstCode" Title="CstCode" />
-            <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
-            <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="dateTransferred" />
-            <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
-            <RadzenDataGridColumn TItem="Transfer" Property="receiveName" Title="receiveName" />
-            <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="TransferType" />
-        </Columns>
-    </RadzenDataGrid>
-}
 
 @code {
-    private bool IsLoading = true;
+    [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
     private RadzenDataGrid<Transfer> grid;
     private List<Transfer>? TransferList;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(500);
         var response = await HttpClient.GetAsync("https://localhost:7041/api/Transfer");
         if (response.IsSuccessStatusCode)
         {
@@ -50,7 +58,12 @@ else
         {
             TransferList = null;
         }
-        IsLoading = false;
-        await InvokeAsync(StateHasChanged);
+    }
+    private async Task CloseModal()
+    {
+        if (ModalInstance != null)
+        {
+            await ModalInstance.CloseAsync(ModalResult.Cancel());
+        }
     }
 }

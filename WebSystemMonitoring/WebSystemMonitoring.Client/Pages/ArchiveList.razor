@@ -1,11 +1,9 @@
-﻿@page "/archiveList"
-@rendermode InteractiveAuto
+﻿@rendermode InteractiveAuto
 
 @inject HttpClient HttpClient
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
-<PageTitle>Archive List</PageTitle>
 <h1>Archive List</h1>
 
 <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@_archivelist" TItem="ArchivedTransactions" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
@@ -19,25 +17,15 @@
         <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="SurQTY" />
     </Columns>
 </RadzenDataGrid>
-<p></p>
-<p></p>
-<p></p>
+<div class="button-row" style="margin-top: 20px;">
+    <RadzenButton ButtonType="ButtonType.Button" Text="Close" Click="CloseModal" Variant="Variant.Text" />
+</div>
 
-<h1>Item Disposal</h1>
-<RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
-    <Columns>
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="NonServCode" />
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="disposalName" />
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="Description" Title="Description" />
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalDate" Title="disposalDate" />
-    </Columns>
-</RadzenDataGrid>
 
 @code {
+    [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
     private List<ArchivedTransactions>? _archivelist;
-    private List<ItemDisposal>? _itemdisposals;
     private RadzenDataGrid<ArchivedTransactions> grid;
-    private RadzenDataGrid<ItemDisposal> disposalgrid;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,15 +39,12 @@
         {
             _archivelist = null;
         }
-        var Disposalresponse = await HttpClient.GetAsync("https://localhost:7041/api/ItemDisposal");
-        if (Disposalresponse.IsSuccessStatusCode)
-        {
-            var json = await Disposalresponse.Content.ReadAsStringAsync();
-            _itemdisposals = JsonConvert.DeserializeObject<List<ItemDisposal>>(json);
-        }
-        else
-        {
-            _itemdisposals = null;
-        }
 	}
+    private async Task CloseModal()
+    {
+        if (ModalInstance != null)
+        {
+            await ModalInstance.CloseAsync(ModalResult.Cancel());
+        }
+    }
 }

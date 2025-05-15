@@ -21,63 +21,227 @@
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 
-<h1>Master List</h1>
+<style>
+    /* Custom styles for RadzenDataGrid */
+    .custom-radzen-grid {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        width: 100%;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
 
-<div class="mt-4 border p-4">
-    <h5>Add new Entry or Item</h5>
-    <div class="column">
-        <button class="btn btn-primary mt-2" @onclick="ShowAddForm">Add Entry</button>
-        <button class="btn btn-primary mt-2" @onclick="ShowAddItem">Add Item</button>
+        .custom-radzen-grid ::deep .rz-datatable-header {
+            background-color: #1f2937;
+            color: white;
+            font-weight: bold;
+            padding: 1rem;
+            border: none;
+        }
+
+        .custom-radzen-grid ::deep .rz-grid-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .custom-radzen-grid ::deep .rz-datatable-scrollable-header {
+            background-color: #1f2937;
+        }
+
+        .custom-radzen-grid ::deep .rz-datatable-scrollable-header-box {
+            margin-right: 0 !important;
+        }
+
+        .custom-radzen-grid ::deep .rz-column-title {
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.85rem;
+        }
+
+        .custom-radzen-grid ::deep .rz-grid-table th {
+            background-color: #1f2937;
+            border-color: #374151;
+            padding: 0.5rem;
+        }
+
+        .custom-radzen-grid ::deep .rz-grid-table tr {
+            background-color: white;
+            transition: background-color 0.2s;
+        }
+
+            .custom-radzen-grid ::deep .rz-grid-table tr:hover {
+                background-color: #f9fafb;
+            }
+
+        .custom-radzen-grid ::deep .rz-grid-table td {
+            padding: 0.5rem;
+            border-color: #e5e7eb;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.875rem;
+        }
+
+        .custom-radzen-grid ::deep .rz-paginator {
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .custom-radzen-grid ::deep .rz-paginator-element {
+            color: #374151;
+            font-weight: 500;
+            background-color: transparent;
+            margin: 0 0.25rem;
+        }
+
+            .custom-radzen-grid ::deep .rz-paginator-element:hover:not(.rz-state-disabled) {
+                background-color: #e5e7eb;
+                color: #111827;
+            }
+
+        .custom-radzen-grid ::deep .rz-paginator-page.rz-state-active {
+            background-color: #1f2937;
+            color: white;
+        }
+</style>
+
+<h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3 mb-6">
+    <i class="fas fa-table text-blue-700"></i>
+    Master List
+</h1>
+
+@* <div class="mt-4 border p-4 bg-white rounded-lg shadow-sm">
+    <h5 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+        <i class="fas fa-plus-circle text-blue-700"></i>
+        Add new Entry or Item
+    </h5>
+    <div class="flex flex-wrap gap-3">
+        <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddForm">
+            <i class="fas fa-user-plus text-blue-700"></i> Add Entry
+        </button>
+        <button class="flex items-center gap-2 bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddItem">
+            <i class="fas fa-box text-indigo-700"></i> Add Item
+        </button>
     </div>
-</div>
-<div style="width: 90%;">
-    <RadzenDataGrid class="pardatagrid" @ref="grid" Data="@TransactList" TItem="PAR" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+</div> *@
+
+<div class="w-full overflow-hidden mt-6 mb-8">
+    <RadzenDataGrid @ref="grid"
+                    Data="@TransactList"
+                    TItem="PAR"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    AllowFiltering="true"
+                    PageSize="10"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    FilterMode="FilterMode.Advanced"
+                    class="custom-radzen-grid"
+                    Responsive="true"
+                    Style="width: 100%;">
         <Columns>
-            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="100px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="100px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="150px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian Name" Width="150px" />
-            <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Department Head" Width="150px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date Acquired" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Classification" Width="200px" />
-            <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Source of Fund" Width="150px" />
-            <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Distribution of Copies" Width="200px" />
-            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Reference No." Width="100px" />
-            <RadzenDataGridColumn TItem="PAR" Property="value" Title="Unit Value" Width="100px" FormatString="{0:C}" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="80px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Dept Head" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date" Width="90px" />
+            <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Class" Width="120px" />
+            <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
+            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
+            <RadzenDataGridColumn TItem="PAR" Property="value" Title="Value" Width="80px" FormatString="{0:C}" />
+            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
+        </Columns>
+    </RadzenDataGrid>
+</div>
+<p></p>
+<h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3 mb-6">
+    <i class="fas fa-table text-blue-700"></i>
+    Item Inventory
+</h1>
+<div class="w-full overflow-hidden mt-6 mb-8">
+    <RadzenDataGrid @ref="itemgrid"
+                    Data="@_itemlist"
+                    TItem="Items"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    AllowFiltering="true"
+                    PageSize="10"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    FilterMode="FilterMode.Advanced"
+                    class="custom-radzen-grid"
+                    Responsive="true"
+                    Style="width: 100%;">
+        <Columns>
+            <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
+            <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />
+            <RadzenDataGridColumn TItem="Items" Property="isonBorrow" Title="isonBorrow" />
+            <RadzenDataGridColumn TItem="Items" Property="isnotonBorrow" Title="isnotonBorrow" />
+            <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
+            <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" />
+            <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
         </Columns>
     </RadzenDataGrid>
 </div>
 
-<div class="mt-4 border p-4">
-    <h5>Other Tables</h5>
-    <div class="column">
-        <button class="btn btn-primary mt-2" @onclick="ShowTransfer">Transfer</button>
-        <button class="btn btn-primary mt-2" @onclick="ShowSurrender">Surrender</button>
-        <button class="btn btn-primary mt-2" @onclick="ShowICS">ICS</button>
+<div class="mt-4 border p-4 bg-white rounded-lg shadow-sm">
+    <h5 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+        <i class="fas fa-table-list text-blue-700"></i>
+        Other Tables
+    </h5>
+    <div class="flex flex-wrap gap-3 mb-4">
+        <button class="flex items-center gap-2 bg-green-200 hover:bg-green-300 
+                        active:bg-green-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransfer">
+            <i class="fas fa-exchange-alt text-green-700"></i> Transfer
+        </button>
+        <button class="flex items-center gap-2 bg-yellow-200 hover:bg-yellow-300 
+                       active:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowSurrender">
+            <i class="fas fa-undo text-yellow-700"></i> Surrender
+        </button>
+        <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
+                       active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowICS">
+            <i class="fas fa-file-alt text-purple-700"></i> ICS
+        </button>
+        <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
+                       active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowArchivesList">
+            <i class="fas fa-file-alt text-purple-700"></i> Archives
+        </button>
+        <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
+                       active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowItemDisposal">
+            <i class="fas fa-file-alt text-purple-700"></i> Item Disposal
+        </button>
     </div>
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
-    public class PAR
-    {
-        public string ParID { get; set; }
-        public int ItemCode { get; set; }
-        public string ItemName { get; set; }
-        public string ParName { get; set; }
-        public string DprHeadName { get; set; }
-        public string ParDate { get; set; }
-        public string Classification { get; set; }
-        public string FundCls { get; set; }
-        public string SourceCopies { get; set; }
-        public int refNo { get; set; }
-        public float value { get; set; }
-        public int ParQty { get; set; }
-    }
+    // public class PAR
+    // {
+    //     public string ParID { get; set; }
+    //     public int ItemCode { get; set; }
+    //     public string ItemName { get; set; }
+    //     public string ParName { get; set; }
+    //     public string DprHeadName { get; set; }
+    //     public string ParDate { get; set; }
+    //     public string Classification { get; set; }
+    //     public string FundCls { get; set; }
+    //     public string SourceCopies { get; set; }
+    //     public int refNo { get; set; }
+    //     public float value { get; set; }
+    //     public int ParQty { get; set; }
+    // }
 
     private List<PAR>? TransactList;
+    private List<Items>? _itemlist;
+    private RadzenDataGrid<Items> itemgrid;
     private RadzenDataGrid<PAR> grid;
 
     protected override async Task OnInitializedAsync()
@@ -92,6 +256,16 @@
         else
         {
             TransactList = new List<PAR>();
+        }
+        var itemresponse = await HttpClient.GetAsync("https://localhost:7041/api/Item");
+        if (itemresponse.IsSuccessStatusCode)
+        {
+            var json = await itemresponse.Content.ReadAsStringAsync();
+            _itemlist = JsonConvert.DeserializeObject<List<Items>>(json);
+        }
+        else
+        {
+            _itemlist = null;
         }
     }
 
@@ -140,5 +314,23 @@
                 DisableBackgroundCancel = true
             };
         ModalService.Show<AddItem>("", options);
+    }
+	private void ShowArchivesList()
+	{
+		var options = new ModalOptions
+			{
+				HideCloseButton = true,
+				Size = ModalSize.Automatic
+			};
+		ModalService.Show<ArchiveList>("Archives Records", options);
 	}
+    private void ShowItemDisposal()
+    {
+        var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                Size = ModalSize.Automatic
+            };
+        ModalService.Show<ItemDisposal>("Item Disposal", options);
+    }
 }

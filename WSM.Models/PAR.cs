@@ -10,7 +10,7 @@ namespace APIFinal.Models
         [ForeignKey ("ItemCode")]
         public int ItemCode { get; set; }
         public string ItemName { get; set; }
-        [ForeignKey("CstCode")]
+        public string ItemDesc { get; set; }
         public string ParName { get; set; }
         public string DprHeadName { get; set; }
         public string ParDate { get; set; }

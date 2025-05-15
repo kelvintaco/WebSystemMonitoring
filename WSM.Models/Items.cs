@@ -8,6 +8,7 @@ namespace APIFinal.Models
         [Key]
         public int ItemCode { get; set; }
         public string ItemName { get; set; }
+        public string ItemDeets { get; set; }
         public double Price { get; set; }
         public int isonBorrow { get; set; }
         public int isnotonBorrow { get; set; }

@@ -1,0 +1,106 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('../node_modules/@fortawesome/fontawesome-free/css/all.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        font-family: 'Poppins', sans-serif;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 shadow-md;
+    }
+}
+
+/* Custom animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.animate-fade-in-down {
+    animation: fadeInDown 1s ease-out;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 1s ease-out 0.3s forwards;
+    opacity: 0;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Keep existing custom styles */
+.pardatagrid {
+    padding: .5rem .5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 75%;
+}
+
+    .pardatagrid th {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: .5rem;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+    }
+
+        .pardatagrid th:hover {
+            background-color: #e0e0e0;
+        }
+
+        .pardatagrid th:active {
+            background-color: #d0d0d0;
+        }
+
+    .pardatagrid td {
+        padding: .5rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .pardatagrid tr:hover {
+        background-color: #f9f9f9;
+    }
+
+/* Add the rest of your custom styles from app.css here */

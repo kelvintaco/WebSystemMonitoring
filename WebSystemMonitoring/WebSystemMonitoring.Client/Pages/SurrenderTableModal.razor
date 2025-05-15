@@ -10,37 +10,31 @@
 
 <h1>Surrender Table</h1>
 
-@if (IsLoading)
-{
-    <div class="spinner-border" role="status">
-    </div>
-}
-else
-{
-    <RadzenDataGrid class="surrendermodal" @ref="grid" Data="@SurList" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
-        <Columns>
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="archiveID" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="SurName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="PrpName" Title="PrpName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="DprName" Title="DprName" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveDate" Title="archiveDate" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Value" Title="Value" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="ItemCond" Title="ItemCond" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="SurQTY" />
-			<RadzenDataGridColumn TItem="ArchivedTransactions" Property="Clasifcation" Title="Classification" />
-            <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Copies" Title="Copies" />
-        </Columns>
-    </RadzenDataGrid>
-}
+<RadzenDataGrid class="surrendermodal" @ref="grid" Data="@SurList" TItem="ArchivedTransactions" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveID" Title="Archive ID" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurName" Title="Name" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="PrpName" Title="Property Name" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="DprName" Title="Department Name" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="archiveDate" Title="Archive Date" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Value" Title="Value" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="ItemCond" Title="Item Condition" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="SurQTY" Title="Quantity" />
+		<RadzenDataGridColumn TItem="ArchivedTransactions" Property="Clasifcation" Title="Classification" />
+        <RadzenDataGridColumn TItem="ArchivedTransactions" Property="Copies" Title="Copies" />
+    </Columns>
+</RadzenDataGrid>
+<div class="button-row" style="margin-top: 20px;">
+    <RadzenButton ButtonType="ButtonType.Button" Text="Close" Click="CloseModal" Variant="Variant.Text" />
+</div>
 
 @code {
-    private bool IsLoading = true;
+    [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
     private RadzenDataGrid<ArchivedTransactions> grid;
     private List<ArchivedTransactions>? SurList;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(500);
         var response = await HttpClient.GetAsync("https://localhost:7041/api/ArchivedTransactions");
         if (response.IsSuccessStatusCode)
         {
@@ -51,8 +45,13 @@ else
         {
             SurList = null;
         }
-        IsLoading = false;
-        await InvokeAsync(StateHasChanged);
+    }
+    private async Task CloseModal()
+    {
+        if (ModalInstance != null)
+        {
+            await ModalInstance.CloseAsync(ModalResult.Cancel());
+        }
     }
 }
 

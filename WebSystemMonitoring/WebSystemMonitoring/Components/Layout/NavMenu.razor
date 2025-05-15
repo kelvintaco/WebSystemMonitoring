@@ -1,60 +1,102 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">WebSystemMonitoring</a>
+﻿<div>
+    <!-- Top navigation bar -->
+    <div class="px-4 py-3 flex items-center justify-between">
+        <a href="" class="flex items-center space-x-3 text-white">
+            <i class="fas fa-desktop text-2xl text-blue-100"></i>
+            <span class="text-xl font-semibold tracking-wide">WSM</span>
+        </a>
+
+        <!-- Mobile menu button -->
+        <button id="navbar-toggler" class="md:hidden text-gray-400 hover:text-white focus:outline-none transition-colors duration-300">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar navigation -->
+    <div id="nav-scrollable" class="md:block hidden transition-all duration-300 ease-in-out">
+        <nav>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <i class="fas fa-home text-blue-100 mr-3"></i> Home
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="MasterList">
+                    <i class="fas fa-list-ul text-blue-100 mr-3"></i> Master List
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="addform">
+                    <i class="fas fa-box text-blue-100 mr-3"></i> PAR
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="ics">
+                    <i class="fas fa-print text-blue-100 mr-3"></i> ICS
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="surrender">
+                    <i class="fas fa-archive fa- text-blue-100 mr-3"></i> Surrender
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="transfer">
+                    <i class="fas fa-exchange-alt text-blue-100 mr-3"></i> Transfer
+                </NavLink>
+            </div>
+        </nav>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<style>
+    .nav-item {
+        padding: 0.25rem 1rem;
+    }
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+    .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #d7d7d7;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+    }
 
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div> *@
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="MasterList">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Master List
-            </NavLink>
-        </div>
+        .nav-link.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: white;
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+        }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ItemList">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Item List
-            </NavLink>
-        </div>
+        .nav-link i {
+            transition: transform 0.2s ease-in-out;
+        }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="archiveList">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Archive List
-            </NavLink>
-        </div>
+        .nav-link:hover i {
+            transform: scale(1.2);
+        }
+</style>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="printform">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Print Forms
-            </NavLink>
-        </div>
-
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="archiveform">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Archive Form
-            </NavLink>
-        </div> *@
-
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div> *@
-    </nav>
-</div>
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // We would normally add JavaScript here to toggle the mobile menu
+            // But since we're focusing on CSS for now, we'll leave this as a comment
+        }
+    }
+}
 

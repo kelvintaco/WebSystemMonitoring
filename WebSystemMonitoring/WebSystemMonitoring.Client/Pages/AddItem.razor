@@ -21,43 +21,49 @@
 
 <div class="container mt-4">
     <h3>Add New Item</h3>
-        <RadzenForm Submit="@FormSubmit" class="mt-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <RadzenLabel Text="Item Name" Component="ItemName" />
-                        <RadzenTextBox @bind-Value="ItemName" Name="ItemName" Required="true" 
-                        Style="width: 100%;" placeholder="Enter item name" />
-                    </div>
+    <RadzenForm Submit="@FormSubmit" class="mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Item Name" Component="ItemName" />
+                    <RadzenTextBox @bind-Value="ItemName" Name="ItemName" Required="true" 
+                    Style="width: 100%;" placeholder="Enter item name" />
+                </div>
 
-                    <div class="form-group mb-3">
-                        <RadzenLabel Text="Price"/>
-                        <RadzenTextBox @bind-Value="priceInput" Name="Price" Required="true" 
-                        Style="width: 100%;" placeholder="Enter price" 
-                        Change="@OnPriceChange" Pattern="[0-9]*\.?[0-9]*" />
-                    </div>
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Details" Component="ItemDeets" />
+                    <RadzenTextBox @bind-Value="ItemDeets" Name="ItemDeets" Required="true"
+                    Style="width: 100%;" placeholder="Enter item details" />
+                </div>
 
-                    <div class="form-group mb-3">
-                        <RadzenLabel Text="Place" Component="Place" />
-                        <RadzenTextBox @bind-Value="Place" Name="Place" Required="true" 
-                        Style="width: 100%;" placeholder="Enter place" />
-                    </div>
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Price"/>
+                    <RadzenTextBox @bind-Value="priceInput" Name="Price" Required="true" 
+                    Style="width: 100%;" placeholder="Enter price" 
+                    Change="@OnPriceChange" Pattern="[0-9]*\.?[0-9]*" />
+                </div>
 
-                    <div class="form-group mb-3">
-                        <RadzenLabel Text="Life Time (in years)" Component="LifeTime" />
-                        <RadzenNumeric @bind-Value="LifeTime" Name="LifeTime" Required="true" 
-                        Style="width: 100%;" placeholder="Enter life time" Min="1" />
-                    </div>
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Place" Component="Place" />
+                    <RadzenTextBox @bind-Value="Place" Name="Place" Required="true" 
+                    Style="width: 100%;" placeholder="Enter place" />
+                </div>
 
-                    <div class="form-group mb-3">
-                        <RadzenButton Click="@FormSubmit" Text="Submit" ButtonStyle="ButtonStyle.Primary" 
-                        Style="margin-right: 10px;"/>
-                        <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" 
-                        Click="@Cancel"/>
-                    </div>
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Life Time (in years)" Component="LifeTime" />
+                    <RadzenNumeric @bind-Value="LifeTime" Name="LifeTime" Required="true" 
+                    Style="width: 100%;" placeholder="Enter life time" Min="1" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <RadzenButton Click="@FormSubmit" Text="Submit" ButtonStyle="ButtonStyle.Primary" 
+                    Style="margin-right: 10px;"/>
+                    <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" 
+                    Click="@Cancel"/>
                 </div>
             </div>
-        </RadzenForm>
+        </div>
+    </RadzenForm>
 </div>
 
 @code {
@@ -65,10 +71,12 @@
     private List<string> Item;
     private string priceInput;
 
+    public int ItemCode;
     private string ItemName;
     private double Price;
     private string Place;
     private int LifeTime;
+    private string ItemDeets;
 
     private void OnPriceChange(object value)
     {
@@ -82,6 +90,8 @@
     {
         try
         {
+            var random = new Random();
+            ItemCode = random.Next(100000, 999999);
             Logger.LogInformation($"Form values: ItemName={ItemName}, Price={Price}, Place={Place}, LifeTime={LifeTime}");
             var formData = new Items
             {
@@ -93,6 +103,8 @@
                 NonServ = false,
 				Place = Place,
 				LifeTime = LifeTime,
+				ItemCode = ItemCode,
+				ItemDeets = ItemDeets
             };
 
             var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Item", formData);
@@ -157,4 +169,6 @@
         var modal = ModalService.Show<ErrorAddItem>("Validation Error", parameters, options);
         await modal.Result;
     }
+
+
 }
