@@ -19,85 +19,109 @@
 <div class="container mt-4">
     <h2 class="mb-4">ICS Details</h2>
 
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">PAR Number:</label>
-                    <p>@SelectedPar</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Name:</label>
-                    <p>@Name</p>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Item Code:</label>
-                    <p>@SelectedItemPARData?.ItemCode</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Description:</label>
-                    <p>@SelectedItemPARData?.ItemName</p>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Quantity:</label>
-                    <p>@SelectedItemPARData?.ParQty</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Price:</label>
-                    <p>₱@_Price.ToString("N2")</p>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Lifetime:</label>
-                    <p>@_Life years</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">CST Code:</label>
-                    <p>@SelectedCstData?.CSTCode</p>
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Date:</label>
-                    <p>@DateTime.Now.ToString("MM/dd/yyyy")</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Fund Cluster:</label>
-                    <p>GF</p>
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-12">
-                    <label class="form-label fw-bold">Position/Office:</label>
-                    <RadzenTextBox @bind-Value="_Position" Placeholder="Enter Position/Office" Required="true" class="w-100" />
-                </div>
-            </div>
-
             <div class="row">
-                <div class="col-12">
-                    <RadzenButton Text="Generate ICS Form" Click="GenerateExcel" ButtonStyle="ButtonStyle.Primary" class="w-100" Disabled="@_isGenerating" />
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Select PAR ID:</label>
+                    <RadzenDropDownDataGrid @bind-Value="SelectedPar"
+                                          Data="ParIDList"
+                                          AllowClear="true"
+                                          AllowFiltering="true"
+                                          Placeholder="Select an ID"
+                                          Class="w-100"
+                                          Change="@OnParSelectionChanged" />
                 </div>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(SelectedPar))
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">PAR Number:</label>
+                        <p>@SelectedPar</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Name:</label>
+                        <p>@Name</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Item Code:</label>
+                        <p>@SelectedItemPARData?.ItemCode</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Description:</label>
+                        <p>@_ItemDescription</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Quantity:</label>
+                        <p>@SelectedItemPARData?.ParQty</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Price:</label>
+                        <p>₱@_Price.ToString("N2")</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Lifetime:</label>
+                        <p>@_Life years</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">CST Code:</label>
+                        <p>@SelectedCstData?.CSTCode</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Date:</label>
+                        <p>@DateTime.Now.ToString("MM/dd/yyyy")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Fund Cluster:</label>
+                        <p>GF</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Position/Office:</label>
+                        <RadzenTextBox @bind-Value="_Position" Placeholder="Enter Position/Office" Required="true" class="w-100" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <RadzenButton Text="Generate ICS Form" Click="GenerateExcel" ButtonStyle="ButtonStyle.Primary" class="w-100" Disabled="@_isGenerating" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
+    private CancellationTokenSource cts = new CancellationTokenSource();
+
+    private List<string>? ParIDList;
     [Parameter] public string SelectedPar { get; set; }
     private PAR SelectedItemPARData;
     private Custodian SelectedCstData;
+    private string? _ItemDescription;
 
     private string? Name;
     private double _Price;
@@ -107,6 +131,35 @@
     private bool _isGenerating;
 
     protected override async Task OnInitializedAsync()
+    {
+        // Fetch PAR IDs for dropdown
+        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
+        if (paridresponse.IsSuccessStatusCode)
+        {
+            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+        }
+        else
+        {
+            ParIDList = new List<string>();
+        }
+
+        // Only fetch PAR data if SelectedPar is provided
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            await LoadParData();
+        }
+    }
+
+    private async Task OnParSelectionChanged(object value)
+    {
+        SelectedPar = value?.ToString();
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            await LoadParData();
+        }
+    }
+
+    private async Task LoadParData()
     {
         if (string.IsNullOrEmpty(SelectedPar))
         {
@@ -120,6 +173,18 @@
             SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
             if (SelectedItemPARData != null)
             {
+                // Fetch item details
+                var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItemPARData.ItemName}");
+                if (descResponse.IsSuccessStatusCode)
+                {
+                    var itemDetails = await descResponse.Content.ReadAsStringAsync();
+                    _ItemDescription = $"{SelectedItemPARData.ItemName} - {itemDetails}";
+                }
+                else
+                {
+                    _ItemDescription = SelectedItemPARData.ItemName;
+                }
+
                 var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemPARData.ItemName}");
                 if (priceResponse.IsSuccessStatusCode)
                 {
@@ -197,7 +262,7 @@
         var icsData = new ICSData
         {
             ItemCode = SelectedItemPARData.ItemCode,
-            Description = SelectedItemPARData.ItemName,
+            Description = _ItemDescription,
             CSTCode = SelectedCstData?.CSTCode,
             ICSName = Name,
             ICSPrice = _Price,
@@ -240,6 +305,11 @@
         }
 
         _isGenerating = false;
+    }
+    public void Dispose()
+    {
+        cts.Cancel(); // Cancel any pending operations
+        cts.Dispose(); // Dispose the cancellation token source
     }
 
     public class PAR

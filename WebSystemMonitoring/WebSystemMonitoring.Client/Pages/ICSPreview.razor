@@ -1,6 +1,7 @@
 ﻿@using Blazored.Modal
 @using Blazored.Modal.Services
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
 <script src="https://localhost:7041/static/site.js"></script>
 
@@ -62,6 +63,7 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("printPdf", pdfBase64);
+                NavigationManager.NavigateTo("/ics", forceLoad: true);
             }
             catch (Exception ex)
             {
@@ -77,6 +79,7 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("downloadFile", "ICSData.pdf", pdfBase64, "application/pdf");
+				NavigationManager.NavigateTo("/ics", forceLoad: true);
             }
             catch (Exception ex)
             {
@@ -88,5 +91,6 @@
     private async Task CloseModal()
     {
         await ModalInstance.CloseAsync();
+        NavigationManager.NavigateTo("/ics", forceLoad: true);
     }
 }

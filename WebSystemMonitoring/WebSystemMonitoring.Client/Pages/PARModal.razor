@@ -1,10 +1,8 @@
-﻿@using OfficeOpenXml
-@using System.IO
-@using Radzen.Blazor
+﻿@using Radzen.Blazor
 @using Blazored.Modal
 @using Blazored.Modal.Services
 @inject IJSRuntime JSRuntime
-@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -25,7 +23,7 @@
         {
             <p class="text-danger">@errorMessage</p>
         }
-        else if (pdfBase64 != null)
+        else if (!string.IsNullOrEmpty(pdfBase64))
         {
             <div style="width: 100%; height: 500px; overflow: auto;">
                 <iframe src="data:application/pdf;base64,@pdfBase64" style="width: 100%; height: 100%; border: none;"></iframe>
@@ -37,7 +35,7 @@
         }
     </div>
     <div class="modal-footer">
-        @if (pdfBase64 != null)
+        @if (!string.IsNullOrEmpty(pdfBase64))
         {
             <button class="btn btn-primary" @onclick="PrintDocument">Print</button>
             <button class="btn btn-secondary" @onclick="DownloadDocument">Download</button>
@@ -48,127 +46,24 @@
 
 @code {
     [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; } = default!;
-    [Parameter] public string SelectedPar { get; set; } = default!;
+    [Parameter] public string PdfBase64 { get; set; } = default!;
 
-    private PAR? SelectedParData;
-    private string? pdfBase64;
     private bool isLoading;
     private string? errorMessage;
+    private string? pdfBase64;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if (string.IsNullOrEmpty(SelectedPar))
+        pdfBase64 = PdfBase64;
+        if (string.IsNullOrEmpty(pdfBase64))
         {
-            errorMessage = "No PAR ID selected.";
-            return;
-        }
-
-        isLoading = true;
-        try
-        {
-            var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-            if (response.IsSuccessStatusCode)
-            {
-                SelectedParData = await response.Content.ReadFromJsonAsync<PAR>();
-            }
-            else
-            {
-                errorMessage = $"Failed to fetch PAR data: {response.ReasonPhrase}";
-                return;
-            }
-
-            if (SelectedParData == null)
-            {
-                errorMessage = "PAR data not found.";
-                return;
-            }
-
-            await GeneratePdfPreview();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error loading PAR data: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    private async Task GeneratePdfPreview()
-    {
-        if (SelectedParData == null) return;
-
-        try
-        {
-            var classifications = SelectedParData.Classification?.Split(", ") ?? Array.Empty<string>();
-            bool isClassification1 = classifications.Contains("Office Equipment");
-            bool isClassification2 = classifications.Contains("Furniture and Fixtures");
-            bool isClassification3 = classifications.Contains("IT Equipment");
-            bool isClassification4 = classifications.Contains("Other Machinery & Equipment");
-            bool isClassification5 = classifications.Contains("Communication Equipment");
-
-            var fundTypes = SelectedParData.FundCls?.Split(", ") ?? Array.Empty<string>();
-            string fundType = fundTypes.FirstOrDefault() ?? "None";
-            if (fundType.StartsWith("Trust Fund:"))
-            {
-                fundType = fundType.Replace("Trust Fund:", "").Trim();
-            }
-            else if (fundType.StartsWith("Trust Fund"))
-            {
-                fundType = "Trust Fund";
-            }
-
-            var sourceCopies = SelectedParData.SourceCopies?.Split(", ") ?? Array.Empty<string>();
-            bool copies1 = sourceCopies.Contains("Requisition c/o Property Custodian");
-            bool copies2 = sourceCopies.Contains("GSO");
-            bool copies3 = sourceCopies.Contains("Accounting Office");
-            bool copies4 = sourceCopies.Contains("Disbursement Voucher");
-
-            var parData = new ParData
-            {
-                ParID = SelectedParData.ParID,
-                ItemCode = SelectedParData.ItemCode,
-                ItemName = SelectedParData.ItemName,
-                ParName = SelectedParData.ParName,
-                ParDate = DateTime.Parse(SelectedParData.ParDate ?? DateTime.Today.ToString("yyyy-MM-dd")),
-                RefNo = SelectedParData.refNo,
-                ParQty = SelectedParData.ParQty,
-                IsClassification1 = isClassification1,
-                IsClassification2 = isClassification2,
-                IsClassification3 = isClassification3,
-                IsClassification4 = isClassification4,
-                IsClassification5 = isClassification5,
-                FundType = fundType,
-                value = SelectedParData.value,
-                head = SelectedParData.DprHeadName,
-                Copies1 = copies1,
-                Copies2 = copies2,
-                Copies3 = copies3,
-                Copies4 = copies4
-            };
-
-            var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-par", parData);
-            if (response.IsSuccessStatusCode)
-            {
-                var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                pdfBase64 = Convert.ToBase64String(fileBytes);
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Failed to generate PDF: {response.StatusCode} - {errorContent}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error generating PDF preview: {ex.Message}";
+            errorMessage = "No PDF data provided for preview.";
         }
     }
 
     private async Task PrintDocument()
     {
-        if (pdfBase64 != null)
+        if (!string.IsNullOrEmpty(pdfBase64))
         {
             try
             {
@@ -183,7 +78,7 @@
 
     private async Task DownloadDocument()
     {
-        if (pdfBase64 != null)
+        if (!string.IsNullOrEmpty(pdfBase64))
         {
             try
             {
@@ -199,45 +94,7 @@
     private async Task CloseModal()
     {
         await ModalInstance.CloseAsync();
-    }
-
-    private class PAR
-    {
-        public string? ParID { get; set; }
-        public int ItemCode { get; set; }
-        public string? ItemName { get; set; }
-        public string? ParName { get; set; }
-        public string? ParDate { get; set; }
-        public int refNo { get; set; }
-        public int ParQty { get; set; }
-        public string? Classification { get; set; }
-        public string? FundCls { get; set; }
-        public string? SourceCopies { get; set; }
-        public float value { get; set; }
-        public string? DprHeadName { get; set; }
-    }
-
-    private class ParData
-    {
-        public string? ParID { get; set; }
-        public int ItemCode { get; set; }
-        public string? ItemName { get; set; }
-        public string? ParName { get; set; }
-        public DateTime ParDate { get; set; }
-        public int RefNo { get; set; }
-        public int ParQty { get; set; }
-        public bool IsClassification1 { get; set; }
-        public bool IsClassification2 { get; set; }
-        public bool IsClassification3 { get; set; }
-        public bool IsClassification4 { get; set; }
-        public bool IsClassification5 { get; set; }
-        public bool Copies1 { get; set; }
-        public bool Copies2 { get; set; }
-        public bool Copies3 { get; set; }
-        public bool Copies4 { get; set; }
-		public string ItemDetails { get; set; }
-        public string? FundType { get; set; }
-        public float value { get; set; }
-        public string? head { get; set; }
+        // After modal is closed, navigate to masterlist
+        NavigationManager.NavigateTo("/masterlist", forceLoad: true);
     }
 }

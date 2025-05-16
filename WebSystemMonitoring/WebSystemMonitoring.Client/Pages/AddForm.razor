@@ -19,97 +19,96 @@
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+<script src="https://localhost:7041/static/site.js"></script>
 <PageTitle>PAR Form</PageTitle>
-<CascadingValue Value="this">
-    <CascadingBlazoredModal>
-        <RadzenForm id="form">
-            <div class="main-row">
-                <div class="form-group">
-                    <RadzenLabel Text="Quantity" />
-                    <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" Style="width:70px;" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Unit" />
-                    <RadzenTextBox Value="@Unit" ReadOnly="true" Style="width:100px;" Placeholder="Unit" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Item:" />
-                    <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
-                                            Placeholder="Select an Item" Required="true" Style="width:200px;" 
-                                            Change="@OnItemSelected" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Details"/>
-                    <RadzenTextBox Value="@ItemDetails" Required="true" ReadOnly="true" Style="width:250px;" Placeholder="Brand/Specifications/Etc" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Date Acquired" />
-                    <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px;" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Property No." />
-                    <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
-                </div>
-                <div class="form-group">
-                    <RadzenLabel Text="Unit Value" />
-                    <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px;" />
-                </div>
+<RadzenForm id="form">
+    <div class="main-row">
+        <div class="form-group">
+            <RadzenLabel Text="Quantity" />
+            <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" Style="width:70px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Unit" />
+            <RadzenTextBox @bind-Value="Unit" Style="width:100px;" Placeholder="Enter Unit" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Item:" />
+            <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
+            Placeholder="Select an Item" Required="true" Style="width:200px;" 
+            Change="@OnItemSelected" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Details"/>
+            <RadzenTextBox Value="@ItemDetails" Required="true" ReadOnly="true" Style="width:250px;" Placeholder="Brand/Specifications/Etc" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Date Acquired" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Property No." />
+            <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
+        </div>
+        <div class="form-group">
+            <RadzenLabel Text="Unit Value" />
+            <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px;" />
+        </div>
+    </div>
+    <div style="width: 200px; margin-left: 220px; margin-bottom: 2px;">
+        <span @onclick="ShowAddItemModal" style="color: #007bff; cursor: pointer; text-decoration: underline; font-size: 0.95em;">item does not exist?</span>
+    </div>
+    <div class="form-sections">
+        <div class="left-col">
+            <RadzenLabel Text="1. Classification" />
+            <div>
+                <RadzenCheckBox @bind-Value="IsClassification1" Required="true" /> Office Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification2" Required="true" /> Furniture and Fixtures<br />
+                <RadzenCheckBox @bind-Value="IsClassification3" Required="true" /> IT Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification4" Required="true" /> Other Machinery & Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification5" Required="true" /> Communication Equipment
             </div>
-            <div style="width: 200px; margin-left: 220px; margin-bottom: 2px;">
-                <span @onclick="ShowAddItemModal" style="color: #007bff; cursor: pointer; text-decoration: underline; font-size: 0.95em;">item does not exist?</span>
+            <RadzenLabel Text="2. Reference Check #" />
+            <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px;" />
+        </div>
+        <div class="right-col">
+            <RadzenLabel Text="3. Source of Fund" />
+            <div>
+                <RadzenCheckBox @bind-Value="IsSourceOfFund1" /> GF
+                <RadzenCheckBox @bind-Value="IsSourceOfFund2" Style="margin-left:10px;" /> SEF
+                <RadzenCheckBox @bind-Value="IsSourceOfFund3" Style="margin-left:10px;" /> Trust Fund
+                <RadzenLabel Text="Others" Style="margin-left:10px;" />
+                <RadzenTextBox @bind-Value="TrustFundText" Placeholder="Trust Fund details" Style="width:150px; margin-left:10px;" />
             </div>
-            <div class="form-sections">
-                <div class="left-col">
-                    <RadzenLabel Text="1. Classification" />
-                    <div>
-                        <RadzenCheckBox @bind-Value="IsClassification1" Required="true" /> Office Equipment<br />
-                        <RadzenCheckBox @bind-Value="IsClassification2" Required="true" /> Furniture and Fixtures<br />
-                        <RadzenCheckBox @bind-Value="IsClassification3" Required="true" /> IT Equipment<br />
-                        <RadzenCheckBox @bind-Value="IsClassification4" Required="true" /> Other Machinery & Equipment<br />
-                        <RadzenCheckBox @bind-Value="IsClassification5" Required="true" /> Communication Equipment
-                    </div>
-                    <RadzenLabel Text="2. Reference Check #" />
-                    <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px;" />
-                </div>
-                <div class="right-col">
-                    <RadzenLabel Text="3. Source of Fund" />
-                    <div>
-                        <RadzenCheckBox @bind-Value="IsSourceOfFund1" /> GF
-                        <RadzenCheckBox @bind-Value="IsSourceOfFund2" Style="margin-left:10px;" /> SEF
-                        <RadzenCheckBox @bind-Value="IsSourceOfFund3" Style="margin-left:10px;" /> Trust Fund
-                        <RadzenLabel Text="Others" Style="margin-left:10px;" />
-                        <RadzenTextBox @bind-Value="TrustFundText" Placeholder="Trust Fund details" Style="width:150px; margin-left:10px;" />
-                    </div>
-                    <RadzenLabel Text="4. Distribution of Copies" />
-                    <div>
-                        <RadzenCheckBox @bind-Value="Copies1" /> Requisition c/o Property Custodian<br />
-                        <RadzenCheckBox @bind-Value="Copies2" /> GSO<br />
-                        <RadzenCheckBox @bind-Value="Copies3" /> Accounting Office<br />
-                        <RadzenCheckBox @bind-Value="Copies4" /> Disbursement Voucher
-                    </div>
-                </div>
+            <RadzenLabel Text="4. Distribution of Copies" />
+            <div>
+                <RadzenCheckBox @bind-Value="Copies1" /> Requisition c/o Property Custodian<br />
+                <RadzenCheckBox @bind-Value="Copies2" /> GSO<br />
+                <RadzenCheckBox @bind-Value="Copies3" /> Accounting Office<br />
+                <RadzenCheckBox @bind-Value="Copies4" /> Disbursement Voucher
             </div>
+        </div>
+    </div>
 
-            <div class="bottom-row">
-                <div>
-                    <RadzenLabel Text="Received By:" />
-                    <RadzenTextBox @bind-Value="CSTName" />
-                </div>
-                <div>
-                    <RadzenLabel Text="Department Head:" />
-                    <RadzenTextBox @bind-Value="DPRName" />
-                </div>
-            </div>
-            <div class="button-row" style="margin-top: 20px;">
-                <input type="submit" value="Submit" @onclick="SubmitForm" disabled="@IsSubmitting" style="margin-top: 20px;" />
-                <button type="button" @onclick="CancelForm" disabled="@IsSubmitting" style="margin-left: 10px;">Cancel</button>
-            </div>
-        </RadzenForm>
-    </CascadingBlazoredModal>
-</CascadingValue>
+    <div class="bottom-row">
+        <div>
+            <RadzenLabel Text="Received By:" />
+            <RadzenTextBox @bind-Value="CSTName" />
+        </div>
+        <div>
+            <RadzenLabel Text="Department Head:" />
+            <RadzenTextBox @bind-Value="DPRName" />
+        </div>
+    </div>
+    <div class="button-row" style="margin-top: 20px;">
+        <input type="submit" value="Submit" @onclick="SubmitForm" disabled="@IsSubmitting" style="margin-top: 20px;" />
+        <button type="button" @onclick="CancelForm" disabled="@IsSubmitting" style="margin-left: 10px;">Cancel</button>
+    </div>
+</RadzenForm>
 
+<CascadingBlazoredModal></CascadingBlazoredModal>
 @code {
     [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
+    private CancellationTokenSource cts = new CancellationTokenSource();
 
     public List<string>? ItemList;
     public string? CSTName;
@@ -160,7 +159,6 @@
             if (itemCodeResponse.IsSuccessStatusCode)
             {
                 ItemCode = await itemCodeResponse.Content.ReadFromJsonAsync<int>();
-                Unit = ItemCode.ToString();
             }
             else
             {
@@ -178,7 +176,7 @@
             var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItem}");
             if (descResponse.IsSuccessStatusCode)
             {
-                ItemDetails = await descResponse.Content.ReadFromJsonAsync<string>();
+                ItemDetails = await descResponse.Content.ReadAsStringAsync();
             }
             else
             {
@@ -203,7 +201,7 @@
 
             // Validate fields
             if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || ParQty <= 0 || 
-                Date == default || string.IsNullOrEmpty(SelectedItem) ||
+                Date == default || string.IsNullOrEmpty(SelectedItem) || string.IsNullOrEmpty(Unit) ||
                 !(IsClassification1 || IsClassification2 || IsClassification3 || IsClassification4 || IsClassification5) ||
                 !(IsSourceOfFund1 || IsSourceOfFund2 || IsSourceOfFund3) ||
                 !(Copies1 || Copies2 || Copies3 || Copies4))
@@ -213,7 +211,7 @@
                 return;
             }
 
-            // Construct data
+            // Construct common data
             var classifications = new List<string>();
             if (IsClassification1) classifications.Add("Office Equipment");
             if (IsClassification2) classifications.Add("Furniture and Fixtures");
@@ -235,24 +233,104 @@
             if (Copies4) copies.Add("Disbursement Voucher");
             var sourceCopies = string.Join(", ", copies);
 
-            var formData = new
-            {
-                ParID = await GenerateParCode(),
-                ItemCode = ItemCode,
-                ItemName = SelectedItem,
-                ParName = CSTName,
-                DprHeadName = DPRName,
-                ParDate = Date.ToString("yyyy-MM-dd"),
-                Classification = classification,
-                FundCls = fundCls,
-                SourceCopies = sourceCopies,
-                refNo = referenceNo,
-                value = value,
-                ParQty = ParQty,
-                Unit = Unit,
-                ItemDesc = ItemDetails
-            };
+            string? lastParID = null;
+            string? pdfBase64 = null;
 
+            // Post a record for each quantity
+            for (int i = 0; i < ParQty; i++)
+            {
+                var formData = new
+                {
+                    ParID = await GenerateParCode(),
+                    ItemCode = ItemCode,
+                    ItemName = SelectedItem,
+                    ParName = CSTName,
+                    DprHeadName = DPRName,
+                    ParDate = Date.ToString("yyyy-MM-dd"),
+                    Classification = classification,
+                    FundCls = fundCls,
+                    SourceCopies = sourceCopies,
+                    refNo = referenceNo,
+                    value = value,
+                    ParQty = 1, // Each record represents one unit
+                    Unit = Unit,
+                    ItemDesc = ItemDetails
+                };
+
+                lastParID = formData.ParID; // Store the last ParID
+
+                var formDataJson = JsonConvert.SerializeObject(formData);
+
+                Logger.LogInformation("Posting PAR data for quantity {CurrentQuantity}", i + 1);
+                var postPar = await HttpClient.PostAsync(
+                    "https://localhost:7041/api/PAR",
+                    new StringContent(formDataJson, Encoding.UTF8, "application/json")
+                );
+                if (!postPar.IsSuccessStatusCode)
+                {
+                    string responseText = await postPar.Content.ReadAsStringAsync();
+                    Logger.LogError($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
+                    await ShowValidationErrorModal();
+                    return;
+                }
+
+                // Generate PDF for the last PAR record
+                if (i == ParQty - 1)
+                {
+                    var parData = new
+                    {
+                        ParID = formData.ParID,
+                        ItemCode = formData.ItemCode,
+                        ItemName = formData.ItemName,
+                        ParName = formData.ParName,
+                        ParDate = DateTime.Parse(formData.ParDate),
+                        RefNo = formData.refNo,
+                        ParQty = formData.ParQty,
+                        IsClassification1 = IsClassification1,
+                        IsClassification2 = IsClassification2,
+                        IsClassification3 = IsClassification3,
+                        IsClassification4 = IsClassification4,
+                        IsClassification5 = IsClassification5,
+                        FundType = funds.FirstOrDefault() ?? "None",
+                        value = formData.value,
+                        head = formData.DprHeadName,
+                        Copies1 = Copies1,
+                        Copies2 = Copies2,
+                        Copies3 = Copies3,
+                        Copies4 = Copies4,
+                        Unit = formData.Unit,
+                        ItemDetails = formData.ItemDesc
+                    };
+
+                    Logger.LogInformation("Generating PDF for ParID: {ParID}", lastParID);
+                    var pdfResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-par", parData);
+                    if (pdfResponse.IsSuccessStatusCode)
+                    {
+                        var fileBytes = await pdfResponse.Content.ReadAsByteArrayAsync();
+                        pdfBase64 = Convert.ToBase64String(fileBytes);
+
+                        var parameters = new ModalParameters();
+                        parameters.Add("PdfBase64", pdfBase64);
+                        var options = new ModalOptions
+                        {
+                            HideCloseButton = true,
+                            DisableBackgroundCancel = true
+                        };
+                        ModalService.Show<PARModal>("PAR Document Preview", parameters, options);
+                        
+
+                    }
+                    else
+                    {
+                        var errorContent = await pdfResponse.Content.ReadAsStringAsync();
+                        Logger.LogError($"Failed to generate PDF: {pdfResponse.StatusCode} - {errorContent}");
+                        await ShowValidationErrorModal();
+                        return;
+                    }
+                }
+            }
+
+            // Post Custodian data (only once)
             var custodianData = new
             {
                 CSTCode = await GenerateCSTCode(),
@@ -260,21 +338,7 @@
                 DPRName = DPRName
             };
 
-            var formDataJson = JsonConvert.SerializeObject(formData);
             var custodianDataJson = JsonConvert.SerializeObject(custodianData);
-
-            Logger.LogInformation("Posting PAR data");
-            var postPar = await HttpClient.PostAsync(
-                "https://localhost:7041/api/PAR",
-                new StringContent(formDataJson, Encoding.UTF8, "application/json")
-            );
-            if (!postPar.IsSuccessStatusCode)
-            {
-                string responseText = await postPar.Content.ReadAsStringAsync();
-                Logger.LogError($"PAR API failed with status code {postPar.StatusCode}: {responseText}");
-                await ShowValidationErrorModal();
-                return;
-            }
 
             Logger.LogInformation("Posting Custodian data");
             var postCustodian = await HttpClient.PostAsync(
@@ -288,9 +352,6 @@
                 await ShowValidationErrorModal();
                 return;
             }
-
-            Logger.LogInformation("Both API calls successful, showing success modal");
-            await ShowSuccessModal();
         }
         catch (Exception ex)
         {
@@ -301,33 +362,6 @@
         {
             IsSubmitting = false;
             StateHasChanged();
-        }
-    }
-
-    private async Task ShowSuccessModal()
-    {
-        Logger.LogInformation("Showing Success Modal");
-        var options = new ModalOptions
-        {
-            HideCloseButton = true,
-            DisableBackgroundCancel = true
-        };
-
-        var parameters = new ModalParameters();
-        var modal = ModalService.Show<SuccessAddForm>("", parameters, options);
-        var result = await modal.Result;
-
-        if (!result.Cancelled)
-        {
-            Logger.LogInformation("Success modal closed, closing AddForm modal");
-
-            await ModalInstance.CloseAsync(ModalResult.Ok(true));
-            Logger.LogInformation("Navigating to /masterlist");
-            NavigationManager.NavigateTo("/masterlist", forceLoad: true);
-        }
-        else
-        {
-            Logger.LogInformation("Success modal cancelled");
         }
     }
 
@@ -405,5 +439,36 @@
             DisableBackgroundCancel = true
         };
         ModalService.Show<AddItem>("Add New Item", options);
+    }
+    public void Dispose()
+    {
+        cts.Cancel(); // Cancel any pending operations
+        cts.Dispose(); // Dispose the cancellation token source
+    }
+
+    // Classes for PAR data
+    private class ParData
+    {
+        public string? ParID { get; set; }
+        public int ItemCode { get; set; }
+        public string? ItemName { get; set; }
+        public string? ParName { get; set; }
+        public DateTime ParDate { get; set; }
+        public int RefNo { get; set; }
+        public int ParQty { get; set; }
+        public string? itemunit { get; set; }
+        public bool IsClassification1 { get; set; }
+        public bool IsClassification2 { get; set; }
+        public bool IsClassification3 { get; set; }
+        public bool IsClassification4 { get; set; }
+        public bool IsClassification5 { get; set; }
+        public bool Copies1 { get; set; }
+        public bool Copies2 { get; set; }
+        public bool Copies3 { get; set; }
+        public bool Copies4 { get; set; }
+        public string? ItemDetails { get; set; }
+        public string? FundType { get; set; }
+        public float value { get; set; }
+        public string? head { get; set; }
     }
 }

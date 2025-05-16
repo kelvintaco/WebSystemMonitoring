@@ -20,5 +20,6 @@ namespace APIFinal.Models
         public int refNo { get; set; }
         public float value { get; set; }
         public int ParQty { get; set; }
+        public string Unit { get; set; }
     }
 }

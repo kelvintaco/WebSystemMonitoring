@@ -19,74 +19,97 @@
 <h1>Surrender Details</h1>
 
 <div class="container mt-4">
-    <div class="row mb-3">
-        <div class="col">
-            <label class="form-label fw-bold">Quantity:</label>
-            <p>@SelectedItemPARData?.ParQty</p>
-        </div>
-        <div class="col">
-            <label class="form-label fw-bold">Unit (Item Code):</label>
-            <p>@SelectedItemPARData?.ItemCode</p>
-        </div>
-        <div class="col">
-            <label class="form-label fw-bold">Description:</label>
-            <p>@SelectedItemPARData?.ItemName</p>
-        </div>
-        <div class="col">
-            <label class="form-label fw-bold">Date Acquired:</label>
-            <p>@SelectedItemPARData?.ParDate</p>
-        </div>
-        <div class="col">
-            <label class="form-label fw-bold">Property No.:</label>
-            <p>@SelectedItemPARData?.ItemCode</p>
-        </div>
-        <div class="col">
-            <label class="form-label fw-bold">Unit Value:</label>
-            <p>₱@SelectedItemPARData?.value.ToString("N2")</p>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Select PAR ID:</label>
+                    <RadzenDropDownDataGrid @bind-Value="SelectedPar"
+                                          Data="ParIDList"
+                                          AllowClear="true"
+                                          AllowFiltering="true"
+                                          Placeholder="Select an ID"
+                                          Class="w-100"
+                                          Change="@OnParSelectionChanged" />
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col">
-            <label class="form-label fw-bold">Surrendered By:</label>
-            <p>@SelectedItemPARData?.ParName</p>
+    @if (!string.IsNullOrEmpty(SelectedPar))
+    {
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label fw-bold">Quantity:</label>
+                <p>@SelectedItemPARData?.ParQty</p>
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Unit (Item Code):</label>
+                <p>@SelectedItemPARData?.ItemCode</p>
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Description:</label>
+                <p>@_ItemDescription</p>
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Date Acquired:</label>
+                <p>@SelectedItemPARData?.ParDate</p>
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Property No.:</label>
+                <p>@SelectedItemPARData?.ItemCode</p>
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Unit Value:</label>
+                <p>₱@SelectedItemPARData?.value.ToString("N2")</p>
+            </div>
         </div>
-    </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <h5>1. Classification</h5>
-            <div><RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment</div>
-            <div><RadzenCheckBox @bind-Value="IsClassification2" /> Furniture & Fixtures</div>
-            <div><RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment</div>
-            <div><RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment</div>
-            <div><RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment</div>
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label fw-bold">Surrendered By:</label>
+                <p>@SelectedItemPARData?.ParName</p>
+            </div>
         </div>
-        <div class="col-md-6">
-            <h5>2. Distribution of Copies</h5>
-            <div><RadzenCheckBox @bind-Value="CopiesEndUser" /> End User</div>
-            <div><RadzenCheckBox @bind-Value="CopiesGSO" /> GSO</div>
-        </div>
-    </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <label class="form-label fw-bold">Condition:</label>
-            <RadzenDropDown @bind-Value="Condition" Data="conditions" />
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h5>1. Classification</h5>
+                <div><RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment</div>
+                <div><RadzenCheckBox @bind-Value="IsClassification2" /> Furniture & Fixtures</div>
+                <div><RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment</div>
+                <div><RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment</div>
+                <div><RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment</div>
+            </div>
+            <div class="col-md-6">
+                <h5>2. Distribution of Copies</h5>
+                <div><RadzenCheckBox @bind-Value="CopiesEndUser" /> End User</div>
+                <div><RadzenCheckBox @bind-Value="CopiesGSO" /> GSO</div>
+            </div>
         </div>
-    </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <RadzenButton Text="Submit" Click="SaveToExcel" ButtonStyle="ButtonStyle.Primary" />
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Condition:</label>
+                <RadzenDropDown @bind-Value="Condition" Data="conditions" />
+            </div>
         </div>
-    </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <RadzenButton Text="Submit" Click="SaveToExcel" ButtonStyle="ButtonStyle.Primary" />
+            </div>
+        </div>
+    }
 </div>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
+    private CancellationTokenSource cts = new CancellationTokenSource();
+    private List<string>? ParIDList;
     [Parameter] public string SelectedPar { get; set; }
+    private string? _ItemDescription;
 
     private List<string>? conditions = new List<string> { "Servicable", "Nonservicable" };
     private List<string>? ItemList;
@@ -128,6 +151,35 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Fetch PAR IDs for dropdown
+        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
+        if (paridresponse.IsSuccessStatusCode)
+        {
+            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+        }
+        else
+        {
+            ParIDList = new List<string>();
+        }
+
+        // Only fetch PAR data if SelectedPar is provided
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            await LoadParData();
+        }
+    }
+
+    private async Task OnParSelectionChanged(object value)
+    {
+        SelectedPar = value?.ToString();
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            await LoadParData();
+        }
+    }
+
+    private async Task LoadParData()
+    {
         if (!string.IsNullOrEmpty(SelectedPar))
         {
             var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
@@ -137,6 +189,21 @@
 
                 if (SelectedItemPARData != null)
                 {
+                    // Fetch item details
+                    if (!string.IsNullOrEmpty(SelectedItemPARData.ItemName))
+                    {
+                        var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItemPARData.ItemName}");
+                        if (descResponse.IsSuccessStatusCode)
+                        {
+                            var itemDetails = await descResponse.Content.ReadAsStringAsync();
+                            _ItemDescription = $"{SelectedItemPARData.ItemName} - {itemDetails}";
+                        }
+                        else
+                        {
+                            _ItemDescription = SelectedItemPARData.ItemName;
+                        }
+                    }
+
                     var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemByName/{SelectedItemPARData.ItemName}");
                     if (itemResponse.IsSuccessStatusCode)
                     {
@@ -176,6 +243,12 @@
 
         Classification = string.Join(", ", classifications);
 
+        // Set Copies based on checkbox selections
+        var copiesList = new List<string>();
+        if (CopiesEndUser) copiesList.Add("End User");
+        if (CopiesGSO) copiesList.Add("GSO");
+        var copies = string.Join(", ", copiesList);
+
         if (Condition == "Nonservicable")
         {
             var itemDisposal = new ItemDisposal
@@ -205,7 +278,7 @@
             {
                 Quantity = SelectedItemPARData.ParQty.ToString(),
                 ItemCode = SelectedItemPARData.ItemCode,
-                ItemName = SelectedItemPARData.ItemName,
+                ItemName = _ItemDescription,
                 ParDate = SelectedItemPARData.ParDate,
                 ParID = SelectedItemPARData.ParID,
                 Value = SelectedItemPARData.value,
@@ -218,7 +291,9 @@
                 IsClassification4 = IsClassification4,
                 IsClassification5 = IsClassification5,
                 CopiesEndUser = CopiesEndUser,
-                CopiesGSO = CopiesGSO
+                CopiesGSO = CopiesGSO,
+                Copies = copies,
+                Clasification = Classification
             };
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
         if (response.IsSuccessStatusCode)
@@ -245,16 +320,14 @@
         var archiving = new SurrenderData
             {
                 SurName = SelectedItemPARData.ParName,
-                PrpName = SelectedItemPARData.ItemName,
-                DprName = SelectedItemPARData.DprHeadName,
+                PrpName = _ItemDescription,
+                Description = _ItemDescription,
                 archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
                 Value = SelectedItemPARData.value,
                 ItemCond = Condition,
                 SurQTY = SelectedItemPARData.ParQty,
                 Clasification = Classification,
-                Copies = CopiesEndUser && CopiesGSO ? "End User, GSO" :
-                         CopiesEndUser ? "End User" :
-                         CopiesGSO ? "GSO" : ""
+                Copies = copies
             };
 
         var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
@@ -276,6 +349,11 @@
         {
             Console.WriteLine("PAR deleted successfully.");
         }
+    }
+    public void Dispose()
+    {
+        cts.Cancel(); // Cancel any pending operations
+        cts.Dispose(); // Dispose the cancellation token source
     }
 
     public class PAR
@@ -324,7 +402,7 @@
         public bool CopiesGSO { get; set; }
         public string SurName { get; set; }
         public string PrpName { get; set; }
-        public string DprName { get; set; }
+        public string Description { get; set; }
         public string archiveDate { get; set; }
         public string ItemCond { get; set; }
         public int SurQTY { get; set; }
