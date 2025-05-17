@@ -309,16 +309,29 @@
                         var fileBytes = await pdfResponse.Content.ReadAsByteArrayAsync();
                         pdfBase64 = Convert.ToBase64String(fileBytes);
 
-                        var parameters = new ModalParameters();
-                        parameters.Add("PdfBase64", pdfBase64);
-                        var options = new ModalOptions
+                        // Show success modal first
+                        var successParameters = new ModalParameters();
+                        var successOptions = new ModalOptions
                         {
                             HideCloseButton = true,
                             DisableBackgroundCancel = true
                         };
-                        ModalService.Show<PARModal>("PAR Document Preview", parameters, options);
                         
+                        var successModal = ModalService.Show<SuccessAddForm>("Success", successParameters, successOptions);
+                        var result = await successModal.Result;
 
+                        // After success modal is closed, show the preview
+                        if (!result.Cancelled)
+                        {
+                            var previewParameters = new ModalParameters();
+                            previewParameters.Add("PdfBase64", pdfBase64);
+                            var previewOptions = new ModalOptions
+                            {
+                                HideCloseButton = true,
+                                DisableBackgroundCancel = true
+                            };
+                            ModalService.Show<PARModal>("PAR Document Preview", previewParameters, previewOptions);
+                        }
                     }
                     else
                     {

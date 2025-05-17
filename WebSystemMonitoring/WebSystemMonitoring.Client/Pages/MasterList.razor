@@ -30,7 +30,6 @@
         width: 100%;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
-
         .custom-radzen-grid ::deep .rz-datatable-header {
             background-color: #1f2937;
             color: white;
@@ -56,7 +55,7 @@
             color: white;
             font-weight: 600;
             white-space: nowrap;
-            overflow: hidden;
+            overflow-x: auto;
             text-overflow: ellipsis;
             font-size: 0.85rem;
         }
@@ -109,87 +108,191 @@
             background-color: #1f2937;
             color: white;
         }
+
+	body {
+		overflow-x: hidden;
+	}
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .collapse-button {
+        background: none;
+        border: none;
+        color: #1f2937;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .collapse-button:hover {
+        color: #4b5563;
+    }
+
+    .collapse-button i {
+        transition: transform 0.3s ease;
+    }
+
+    .collapse-button.collapsed i {
+        transform: rotate(-90deg);
+    }
+
+    .table-section {
+        transition: all 0.3s ease;
+    }
+
+    .table-section.collapsed {
+        display: none;
+    }
 </style>
 
-<h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3 mb-6">
-    <i class="fas fa-table text-blue-700"></i>
-    Master List
-</h1>
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-table text-blue-700"></i>
+        Entry List
+    </h1>
+    <button class="collapse-button @(isEntryListCollapsed ? "collapsed" : "")" @onclick="ToggleEntryList">
+        <i class="fas fa-chevron-down"></i>
+        @(isEntryListCollapsed ? "Expand" : "Collapse")
+    </button>
+</div>
 
-@* <div class="mt-4 border p-4 bg-white rounded-lg shadow-sm">
-    <h5 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
-        <i class="fas fa-plus-circle text-blue-700"></i>
-        Add new Entry or Item
-    </h5>
-    <div class="flex flex-wrap gap-3">
-        <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddForm">
-            <i class="fas fa-user-plus text-blue-700"></i> Add Entry
+<div class="table-section @(isEntryListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid @ref="grid"
+                        Data="@TransactList"
+                        TItem="PAR"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        FilterMode="FilterMode.Advanced"
+                        class="custom-radzen-grid"
+                        Responsive="true"
+                        Style="width: 100%;">
+            <Columns>
+                <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="80px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
+                <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Dept Head" Width="120px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date" Width="90px" />
+                <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Class" Width="120px" />
+                <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
+                <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
+                <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
+                <RadzenDataGridColumn TItem="PAR" Property="value" Title="Value" Width="80px" FormatString="{0:C}" />
+                <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-table text-blue-700"></i>
+        Transfer Records
+    </h1>
+    <button class="collapse-button @(isTransferListCollapsed ? "collapsed" : "")" @onclick="ToggleTransferList">
+        <i class="fas fa-chevron-down"></i>
+        @(isTransferListCollapsed ? "Expand" : "Collapse")
+    </button>
+</div>
+
+<div class="table-section @(isTransferListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid @ref="transfergrid"
+                        Data="@TransferList"
+                        TItem="Transfer"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        FilterMode="FilterMode.Advanced"
+                        class="custom-radzen-grid"
+                        Responsive="true"
+                        Style="width: 100%;">
+            <Columns>
+                <RadzenDataGridColumn TItem="Transfer" Property="PrtId" Title="PRT ID" />
+                <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Item Code" />
+                <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
+                <RadzenDataGridColumn TItem="Transfer" Property="CstCode" Title="CST Code" />
+                <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
+                <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
+                <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
+                <RadzenDataGridColumn TItem="Transfer" Property="rvName" Title="Receive Name" />
+                <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="Transfer Type" />
+                <RadzenDataGridColumn TItem="Transfer" Property="fundccl" Title="Fund CCL" />
+                <RadzenDataGridColumn TItem="Transfer" Property="from" Title="From" />
+                <RadzenDataGridColumn TItem="Transfer" Property="to" Title="To" />
+                <RadzenDataGridColumn TItem="Transfer" Property="reason" Title="Reason" />
+                <RadzenDataGridColumn TItem="Transfer" Property="apprvdBy" Title="Approved By" />
+                <RadzenDataGridColumn TItem="Transfer" Property="designationOf" Title="Designation Of" />
+                <RadzenDataGridColumn TItem="Transfer" Property="approvedByDate" Title="Approved By Date" />
+                <RadzenDataGridColumn TItem="Transfer" Property="releaseBy" Title="Released By" />
+                <RadzenDataGridColumn TItem="Transfer" Property="designationRelease" Title="Designation Release" />
+                <RadzenDataGridColumn TItem="Transfer" Property="releaseByDate" Title="Release By Date" />
+                <RadzenDataGridColumn TItem="Transfer" Property="receivedBy" Title="Received By" />
+                <RadzenDataGridColumn TItem="Transfer" Property="designationReceived" Title="Designation Received" />
+                <RadzenDataGridColumn TItem="Transfer" Property="receivedByDate" Title="Received By Date" />
+                <RadzenDataGridColumn TItem="Transfer" Property="dateAcquired" Title="Date Acquired" />
+                <RadzenDataGridColumn TItem="Transfer" Property="Amount" Title="Amount" />
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-table text-blue-700"></i>
+        Item Inventory
+    </h1>
+    <div class="flex items-center gap-3">
+        <button class="flex items-center gap-2 bg-green-200 hover:bg-green-300 
+                       active:bg-green-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddItem">
+            <i class="fas fa-plus text-black-700"></i> Add Item
         </button>
-        <button class="flex items-center gap-2 bg-indigo-200 hover:bg-indigo-300 active:bg-indigo-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddItem">
-            <i class="fas fa-box text-indigo-700"></i> Add Item
+        <button class="collapse-button @(isItemListCollapsed ? "collapsed" : "")" @onclick="ToggleItemList">
+            <i class="fas fa-chevron-down"></i>
+            @(isItemListCollapsed ? "Expand" : "Collapse")
         </button>
     </div>
-</div> *@
-
-<div class="w-full overflow-hidden mt-6 mb-8">
-    <RadzenDataGrid @ref="grid"
-                    Data="@TransactList"
-                    TItem="PAR"
-                    AllowSorting="true"
-                    AllowPaging="true"
-                    AllowFiltering="true"
-                    PageSize="10"
-                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    FilterMode="FilterMode.Advanced"
-                    class="custom-radzen-grid"
-                    Responsive="true"
-                    Style="width: 100%;">
-        <Columns>
-            <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="80px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Dept Head" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date" Width="90px" />
-            <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Class" Width="120px" />
-            <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
-            <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
-            <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
-            <RadzenDataGridColumn TItem="PAR" Property="value" Title="Value" Width="80px" FormatString="{0:C}" />
-            <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
-        </Columns>
-    </RadzenDataGrid>
 </div>
-<p></p>
-<h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3 mb-6">
-    <i class="fas fa-table text-blue-700"></i>
-    Item Inventory
-</h1>
-<div class="w-full overflow-hidden mt-6 mb-8">
-    <RadzenDataGrid @ref="itemgrid"
-                    Data="@_itemlist"
-                    TItem="Items"
-                    AllowSorting="true"
-                    AllowPaging="true"
-                    AllowFiltering="true"
-                    PageSize="10"
-                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    FilterMode="FilterMode.Advanced"
-                    class="custom-radzen-grid"
-                    Responsive="true"
-                    Style="width: 100%;">
-        <Columns>
-            <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
-            <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />
-            <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
-            @* <RadzenDataGridColumn TItem="Items" Property="isonBorrow" Title="isonBorrow" />
-            <RadzenDataGridColumn TItem="Items" Property="isnotonBorrow" Title="isnotonBorrow" /> *@
-            <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
-            <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" />
-            <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
-        </Columns>
-    </RadzenDataGrid>
+
+<div class="table-section @(isItemListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid @ref="itemgrid"
+                        Data="@_itemlist"
+                        TItem="Items"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        FilterMode="FilterMode.Advanced"
+                        class="custom-radzen-grid"
+                        Responsive="true"
+                        Style="width: 100%;">
+            <Columns>
+                <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
+                <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />
+                <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
+                <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
+                <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" />
+                <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
+            </Columns>
+        </RadzenDataGrid>
+    </div>
 </div>
 
 <div class="mt-4 border p-4 bg-white rounded-lg shadow-sm">
@@ -198,22 +301,18 @@
         Other Tables
     </h5>
     <div class="flex flex-wrap gap-3 mb-4">
-        <button class="flex items-center gap-2 bg-green-200 hover:bg-green-300 
-                        active:bg-green-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransfer">
-            <i class="fas fa-exchange-alt text-green-700"></i> Transfer
-        </button>
         <button class="flex items-center gap-2 bg-yellow-200 hover:bg-yellow-300 
                        active:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowSurrender">
-            <i class="fas fa-undo text-yellow-700"></i> Surrender
+            <i class="fas fa-undo text-yellow-700"></i> Surrendered
         </button>
         <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
                        active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowICS">
             <i class="fas fa-file-alt text-purple-700"></i> ICS
         </button>
-        <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
+        @* <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
                        active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowArchivesList">
             <i class="fas fa-file-alt text-purple-700"></i> Archives
-        </button>
+        </button> *@
         <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
                        active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowItemDisposal">
             <i class="fas fa-file-alt text-purple-700"></i> Item Disposal
@@ -244,6 +343,12 @@
     private List<Items>? _itemlist;
     private RadzenDataGrid<Items> itemgrid;
     private RadzenDataGrid<PAR> grid;
+    private List<Transfer>? TransferList;
+    private RadzenDataGrid<Transfer> transfergrid;
+
+    private bool isEntryListCollapsed = false;
+    private bool isTransferListCollapsed = false;
+    private bool isItemListCollapsed = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -258,6 +363,19 @@
         {
             TransactList = new List<PAR>();
         }
+
+        // Load Transfer data
+        var transferResponse = await HttpClient.GetAsync("https://localhost:7041/api/Transfer");
+        if (transferResponse.IsSuccessStatusCode)
+        {
+            var json = await transferResponse.Content.ReadAsStringAsync();
+            TransferList = JsonConvert.DeserializeObject<List<Transfer>>(json);
+        }
+        else
+        {
+            TransferList = new List<Transfer>();
+        }
+
         var itemresponse = await HttpClient.GetAsync("https://localhost:7041/api/Item");
         if (itemresponse.IsSuccessStatusCode)
         {
@@ -277,15 +395,6 @@
                 Size = ModalSize.Automatic
             };
         ModalService.Show<SurrenderTableModal>("Surrender Records", options);
-    }
-
-    private void ShowTransfer()
-    {
-        var options = new ModalOptions
-            {
-                Size = ModalSize.Automatic
-            };
-        ModalService.Show<TransferTableModal>("Transfer Records", options);
     }
 
     private void ShowICS()
@@ -316,15 +425,15 @@
             };
         ModalService.Show<AddItem>("", options);
     }
-	private void ShowArchivesList()
-	{
-		var options = new ModalOptions
-			{
-				HideCloseButton = true,
-				Size = ModalSize.Automatic
-			};
-		ModalService.Show<ArchiveList>("Archives Records", options);
-	}
+	// private void ShowArchivesList()
+	// {
+	// 	var options = new ModalOptions
+	// 		{
+	// 			HideCloseButton = true,
+	// 			Size = ModalSize.Automatic
+	// 		};
+	// 	ModalService.Show<ArchiveList>("Archives Records", options);
+	// }
     private void ShowItemDisposal()
     {
         var options = new ModalOptions
@@ -333,5 +442,23 @@
                 Size = ModalSize.Automatic
             };
         ModalService.Show<ItemDisposal>("Item Disposal", options);
+    }
+
+    private void ToggleEntryList()
+    {
+        isEntryListCollapsed = !isEntryListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ToggleTransferList()
+    {
+        isTransferListCollapsed = !isTransferListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ToggleItemList()
+    {
+        isItemListCollapsed = !isItemListCollapsed;
+        StateHasChanged();
     }
 }
