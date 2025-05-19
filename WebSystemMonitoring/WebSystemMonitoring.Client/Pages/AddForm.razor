@@ -1,8 +1,5 @@
 ﻿@using Radzen.Blazor
 @using System.Globalization
-@using Newtonsoft.Json
-@using System.Net.Http
-@using System.Net.Http.Json
 @using System.Text
 @using System.Text.Json
 @using Blazored.Modal
@@ -20,12 +17,17 @@
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script src="https://localhost:7041/static/site.js"></script>
+
 <PageTitle>PAR Form</PageTitle>
 <RadzenForm id="form">
     <div class="main-row">
         <div class="form-group">
             <RadzenLabel Text="Quantity" />
-            <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" Style="width:70px;" />
+            <RadzenNumeric @bind-Value="ParQty" Required="true" Min="1" Max="@currentStock" Style="width:70px;" />
+            @if (currentStock > 0)
+            {
+                <span style="margin-left: 5px; color: #666;">(Available: @currentStock)</span>
+            }
         </div>
         <div class="form-group">
             <RadzenLabel Text="Unit" />
@@ -33,13 +35,20 @@
         </div>
         <div class="form-group">
             <RadzenLabel Text="Item:" />
-            <RadzenDropDownDataGrid @bind-Value="SelectedItem" Data="ItemList" AllowClear="false" AllowFiltering="true" 
-            Placeholder="Select an Item" Required="true" Style="width:200px;" 
-            Change="@OnItemSelected" />
+            <RadzenDropDownDataGrid @bind-Value="SelectedItem" 
+                Data="ItemList" 
+                TextProperty="DisplayText"
+                ValueProperty="ItemName"
+                AllowClear="false" 
+                AllowFiltering="true" 
+                Placeholder="Select an Item" 
+                Required="true" 
+                Style="width:400px;" 
+                Change="@OnItemSelected" />
         </div>
         <div class="form-group">
             <RadzenLabel Text="Details"/>
-            <RadzenTextBox Value="@ItemDetails" Required="true" ReadOnly="true" Style="width:250px;" Placeholder="Brand/Specifications/Etc" />
+            <RadzenTextBox Value="@(ItemDetails ?? "N/A")" ReadOnly="true" Style="width:250px;" Placeholder="Brand/Specifications/Etc" />
         </div>
         <div class="form-group">
             <RadzenLabel Text="Date Acquired" />
@@ -61,11 +70,11 @@
         <div class="left-col">
             <RadzenLabel Text="1. Classification" />
             <div>
-                <RadzenCheckBox @bind-Value="IsClassification1" Required="true" /> Office Equipment<br />
-                <RadzenCheckBox @bind-Value="IsClassification2" Required="true" /> Furniture and Fixtures<br />
-                <RadzenCheckBox @bind-Value="IsClassification3" Required="true" /> IT Equipment<br />
-                <RadzenCheckBox @bind-Value="IsClassification4" Required="true" /> Other Machinery & Equipment<br />
-                <RadzenCheckBox @bind-Value="IsClassification5" Required="true" /> Communication Equipment
+                <RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification2" /> Furniture and Fixtures<br />
+                <RadzenCheckBox @bind-Value="IsClassification3" /> IT Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment<br />
+                <RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment
             </div>
             <RadzenLabel Text="2. Reference Check #" />
             <RadzenTextBox Value="@referenceNo.ToString()" ReadOnly="true" Style="width:150px;" />
@@ -98,6 +107,10 @@
             <RadzenLabel Text="Department Head:" />
             <RadzenTextBox @bind-Value="DPRName" />
         </div>
+        <div>
+            <RadzenLabel Text="Item Location:" />
+            <RadzenTextBox @bind-Value="ItemPlace" Required="true" Placeholder="Enter where the item will be placed" />
+        </div>
     </div>
     <div class="button-row" style="margin-top: 20px;">
         <input type="submit" value="Submit" @onclick="SubmitForm" disabled="@IsSubmitting" style="margin-top: 20px;" />
@@ -106,55 +119,119 @@
 </RadzenForm>
 
 <CascadingBlazoredModal></CascadingBlazoredModal>
+
 @code {
-    [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
+    [CascadingParameter] public BlazoredModalInstance? ModalInstance { get; set; }
     private CancellationTokenSource cts = new CancellationTokenSource();
 
-    public List<string>? ItemList;
-    public string? CSTName;
-    public string? DPRName;
-    public int ParQty;
-    public DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
-    public string? SelectedItem;
-    public int referenceNo;
-    public int ItemCode;
-    public float value { get; set; }
-    public string? Unit { get; set; }
-    public bool IsClassification1 { get; set; }
-    public bool IsClassification2 { get; set; }
-    public bool IsClassification3 { get; set; }
-    public bool IsClassification4 { get; set; }
-    public bool IsClassification5 { get; set; }
-    public bool IsSourceOfFund1 { get; set; }
-    public bool IsSourceOfFund2 { get; set; }
-    public bool IsSourceOfFund3 { get; set; }
-    public string? TrustFundText { get; set; }
-    public bool Copies1 { get; set; }
-    public bool Copies2 { get; set; }
-    public bool Copies3 { get; set; }
-    public bool Copies4 { get; set; }
-    private bool IsSubmitting { get; set; }
-    private string? ItemDetails { get; set; }
+    public class ItemDisplayInfo
+    {
+        public string? ItemName { get; set; }
+        public int Stock { get; set; }
+        public string? ItemDetails { get; set; }
+        public string DisplayText => $"{ItemName} - {ItemDetails} (Stock: {Stock})";
+    }
+
+    private List<ItemDisplayInfo>? ItemList;
+    private ItemDisplayInfo? SelectedItemInfo;
+    private string? SelectedItem;
+    private string? CSTName;
+    private string? DPRName;
+    private int ParQty;
+    private DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
+    private int referenceNo;
+    private int ItemCode;
+    private float value;
+    private string? Unit;
+    private bool IsClassification1;
+    private bool IsClassification2;
+    private bool IsClassification3;
+    private bool IsClassification4;
+    private bool IsClassification5;
+    private bool IsSourceOfFund1;
+    private bool IsSourceOfFund2;
+    private bool IsSourceOfFund3;
+    private string? TrustFundText;
+    private bool Copies1;
+    private bool Copies2;
+    private bool Copies3;
+    private bool Copies4;
+    private bool IsSubmitting;
+    private string? ItemDetails;
+    private string? ItemPlace;
+    private int currentStock;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNames");
-        if (response.IsSuccessStatusCode)
-        {
-            ItemList = await response.Content.ReadFromJsonAsync<List<string>>();
-        }
-
+        await RefreshItemList();
         var random = new Random();
         referenceNo = random.Next(100000, 999999);
     }
 
-    private async Task OnItemSelected(object selectedItem)
+    private async Task RefreshItemList()
     {
-        if (string.IsNullOrEmpty(SelectedItem)) return;
+        try
+        {
+            Logger.LogInformation("Refreshing item list...");
+            var response = await HttpClient.GetAsync("https://localhost:7041/api/Item/byItemNamesWithStock");
+            if (response.IsSuccessStatusCode)
+            {
+                ItemList = await response.Content.ReadFromJsonAsync<List<ItemDisplayInfo>>();
+                
+                if (ItemList != null)
+                {
+                    foreach (var item in ItemList)
+                    {
+                        var detailsResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{item.ItemName}");
+                        item.ItemDetails = detailsResponse.IsSuccessStatusCode 
+                            ? await detailsResponse.Content.ReadAsStringAsync() 
+                            : "No details available";
+                    }
+                    Logger.LogInformation($"Retrieved {ItemList.Count} items with stock > 0");
+                    Logger.LogInformation($"Items: {string.Join(", ", ItemList.Select(i => i.DisplayText))}");
+                }
+                else
+                {
+                    ItemList = new List<ItemDisplayInfo>();
+                    Logger.LogWarning("Item list is null after API call");
+                }
+            }
+            else
+            {
+                ItemList = new List<ItemDisplayInfo>();
+                var error = await response.Content.ReadAsStringAsync();
+                Logger.LogError($"Failed to get items: {response.StatusCode} - {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ItemList = new List<ItemDisplayInfo>();
+            Logger.LogError(ex, "Error refreshing item list");
+        }
+    }
+
+    private async Task OnItemSelected(object value)
+    {
+        SelectedItem = value as string;
+        SelectedItemInfo = ItemList?.FirstOrDefault(i => i.ItemName == SelectedItem);
+
+        if (string.IsNullOrEmpty(SelectedItem) || SelectedItemInfo == null)
+        {
+            Logger.LogInformation("Item selection cleared");
+            ResetItemFields();
+            return;
+        }
 
         try
         {
-            // Fetch Item Code
+            Logger.LogInformation("Selected item: {ItemName}", SelectedItem);
+            currentStock = SelectedItemInfo.Stock;
+            if (ParQty > currentStock)
+            {
+                ParQty = currentStock;
+            }
+            ItemDetails = SelectedItemInfo.ItemDetails;
+
             var itemCodeResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemCode/{SelectedItem}");
             if (itemCodeResponse.IsSuccessStatusCode)
             {
@@ -162,34 +239,40 @@
             }
             else
             {
-                Unit = "N/A";
+                ItemCode = 0;
+                Logger.LogWarning("Failed to fetch item code for {ItemName}", SelectedItem);
             }
 
-            // Fetch Item Value
             var valueResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItem}");
             if (valueResponse.IsSuccessStatusCode)
             {
                 value = await valueResponse.Content.ReadFromJsonAsync<float>();
             }
-
-            // Fetch Item Description
-            var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItem}");
-            if (descResponse.IsSuccessStatusCode)
-            {
-                ItemDetails = await descResponse.Content.ReadAsStringAsync();
-            }
             else
             {
-                ItemDetails = "N/A";
+                value = 0;
+                Logger.LogWarning("Failed to fetch item value for {ItemName}", SelectedItem);
             }
 
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error fetching item details for {SelectedItem}", SelectedItem);
+            Logger.LogError(ex, "Error in OnItemSelected for {ItemName}", SelectedItem);
             await ShowValidationErrorModal();
         }
+    }
+
+    private void ResetItemFields()
+    {
+        SelectedItemInfo = null;
+        ItemDetails = null;
+        ItemCode = 0;
+        value = 0;
+        currentStock = 0;
+        ParQty = 0;
+        Unit = null;
+        StateHasChanged();
     }
 
     private async Task SubmitForm()
@@ -197,11 +280,20 @@
         IsSubmitting = true;
         try
         {
+            await RefreshItemList();
+            var selectedItemInfo = ItemList?.FirstOrDefault(i => i.ItemName == SelectedItem);
+            if (selectedItemInfo == null)
+            {
+                Logger.LogWarning($"Selected item {SelectedItem} is no longer available");
+                await ShowValidationErrorModal();
+                return;
+            }
+
             Logger.LogInformation("Starting SubmitForm");
 
-            // Validate fields
             if (string.IsNullOrEmpty(CSTName) || string.IsNullOrEmpty(DPRName) || ParQty <= 0 || 
                 Date == default || string.IsNullOrEmpty(SelectedItem) || string.IsNullOrEmpty(Unit) ||
+                string.IsNullOrEmpty(ItemPlace) ||
                 !(IsClassification1 || IsClassification2 || IsClassification3 || IsClassification4 || IsClassification5) ||
                 !(IsSourceOfFund1 || IsSourceOfFund2 || IsSourceOfFund3) ||
                 !(Copies1 || Copies2 || Copies3 || Copies4))
@@ -211,7 +303,37 @@
                 return;
             }
 
-            // Construct common data
+            if (ParQty > selectedItemInfo.Stock)
+            {
+                Logger.LogWarning($"Requested quantity ({ParQty}) exceeds available stock ({selectedItemInfo.Stock})");
+                await ShowValidationErrorModal();
+                return;
+            }
+
+            var updateStockResponse = await HttpClient.PutAsJsonAsync(
+                $"https://localhost:7041/api/Item/updateStock/{SelectedItem}",
+                ParQty
+            );
+            if (!updateStockResponse.IsSuccessStatusCode)
+            {
+                string responseText = await updateStockResponse.Content.ReadAsStringAsync();
+                Logger.LogError($"Failed to update stock: {updateStockResponse.StatusCode} - {responseText}");
+                await ShowValidationErrorModal();
+                return;
+            }
+
+            var updatePlaceResponse = await HttpClient.PutAsJsonAsync(
+                $"https://localhost:7041/api/Item/updatePlace/{SelectedItem}",
+                ItemPlace
+            );
+            if (!updatePlaceResponse.IsSuccessStatusCode)
+            {
+                string responseText = await updatePlaceResponse.Content.ReadAsStringAsync();
+                Logger.LogError($"Failed to update item place: {updatePlaceResponse.StatusCode} - {responseText}");
+                await ShowValidationErrorModal();
+                return;
+            }
+
             var classifications = new List<string>();
             if (IsClassification1) classifications.Add("Office Equipment");
             if (IsClassification2) classifications.Add("Furniture and Fixtures");
@@ -236,7 +358,6 @@
             string? lastParID = null;
             string? pdfBase64 = null;
 
-            // Post a record for each quantity
             for (int i = 0; i < ParQty; i++)
             {
                 var formData = new
@@ -252,15 +373,14 @@
                     SourceCopies = sourceCopies,
                     refNo = referenceNo,
                     value = value,
-                    ParQty = 1, // Each record represents one unit
+                    ParQty = 1,
                     Unit = Unit,
                     ItemDesc = ItemDetails
                 };
 
-                lastParID = formData.ParID; // Store the last ParID
+                lastParID = formData.ParID;
 
-                var formDataJson = JsonConvert.SerializeObject(formData);
-
+                var formDataJson = System.Text.Json.JsonSerializer.Serialize(formData);
                 Logger.LogInformation("Posting PAR data for quantity {CurrentQuantity}", i + 1);
                 var postPar = await HttpClient.PostAsync(
                     "https://localhost:7041/api/PAR",
@@ -274,7 +394,6 @@
                     return;
                 }
 
-                // Generate PDF for the last PAR record
                 if (i == ParQty - 1)
                 {
                     var parData = new
@@ -309,7 +428,6 @@
                         var fileBytes = await pdfResponse.Content.ReadAsByteArrayAsync();
                         pdfBase64 = Convert.ToBase64String(fileBytes);
 
-                        // Show success modal first
                         var successParameters = new ModalParameters();
                         var successOptions = new ModalOptions
                         {
@@ -320,7 +438,6 @@
                         var successModal = ModalService.Show<SuccessAddForm>("Success", successParameters, successOptions);
                         var result = await successModal.Result;
 
-                        // After success modal is closed, show the preview
                         if (!result.Cancelled)
                         {
                             var previewParameters = new ModalParameters();
@@ -343,7 +460,6 @@
                 }
             }
 
-            // Post Custodian data (only once)
             var custodianData = new
             {
                 CSTCode = await GenerateCSTCode(),
@@ -351,8 +467,7 @@
                 DPRName = DPRName
             };
 
-            var custodianDataJson = JsonConvert.SerializeObject(custodianData);
-
+            var custodianDataJson = System.Text.Json.JsonSerializer.Serialize(custodianData);
             Logger.LogInformation("Posting Custodian data");
             var postCustodian = await HttpClient.PostAsync(
                 "https://localhost:7041/api/Custodian",
@@ -386,7 +501,6 @@
             HideCloseButton = true,
             DisableBackgroundCancel = true
         };
-
         var parameters = new ModalParameters();
         await ModalService.Show<ErrorAddForm>("Validation Error", parameters, options).Result;
         Logger.LogInformation("Validation error modal closed");
@@ -396,7 +510,6 @@
     {
         var random = new Random();
         var existingCSTCodes = await GetExistingCSTCodes();
-
         while (true)
         {
             var randomCode = $"CST{random.Next(100, 1000)}";
@@ -410,16 +523,17 @@
     private async Task<List<string>> GetExistingCSTCodes()
     {
         var response = await HttpClient.GetAsync("https://localhost:7041/api/Custodian/GetLatest");
-        var json = await response.Content.ReadAsStringAsync();
-        var existingCSTCodes = JsonConvert.DeserializeObject<List<string>>(json);
-        return existingCSTCodes ?? new List<string>();
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<List<string>>() ?? new List<string>();
+        }
+        return new List<string>();
     }
 
     private async Task<string> GenerateParCode()
     {
         var random = new Random();
         var existingParCodes = await GetExistingParCode();
-
         while (true)
         {
             var randomCode = $"PAR{random.Next(100, 1000)}";
@@ -433,9 +547,11 @@
     private async Task<List<string>> GetExistingParCode()
     {
         var response = await HttpClient.GetAsync("https://localhost:7041/api/PAR/GetLatest");
-        var json = await response.Content.ReadAsStringAsync();
-        var existingParCodes = JsonConvert.DeserializeObject<List<string>>(json);
-        return existingParCodes ?? new List<string>();
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<List<string>>() ?? new List<string>();
+        }
+        return new List<string>();
     }
 
     private async Task CancelForm()
@@ -451,15 +567,19 @@
             HideCloseButton = true,
             DisableBackgroundCancel = true
         };
-        ModalService.Show<AddItem>("Add New Item", options);
-    }
-    public void Dispose()
-    {
-        cts.Cancel(); // Cancel any pending operations
-        cts.Dispose(); // Dispose the cancellation token source
+        var result = await ModalService.Show<AddItem>("Add New Item", options).Result;
+        if (!result.Cancelled)
+        {
+            await RefreshItemList();
+        }
     }
 
-    // Classes for PAR data
+    public void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
+    }
+
     private class ParData
     {
         public string? ParID { get; set; }

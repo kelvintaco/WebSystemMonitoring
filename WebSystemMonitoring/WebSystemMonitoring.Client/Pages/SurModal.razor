@@ -9,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
 @inject IModalService ModalService
+@inject ILogger<ArchivedTransactions> Logger
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -23,14 +24,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Select PAR ID:</label>
+                    <label class="form-label fw-bold">Select ID:</label>
                     <RadzenDropDownDataGrid @bind-Value="SelectedPar"
-                                          Data="ParIDList"
-                                          AllowClear="true"
-                                          AllowFiltering="true"
-                                          Placeholder="Select an ID"
-                                          Class="w-100"
-                                          Change="@OnParSelectionChanged" />
+                                            Data="ParIDList"
+                                            TextProperty="List"
+                                            ValueProperty="ParID"
+                                            AllowClear="true"
+                                            AllowFiltering="true"
+                                            Placeholder="Select an ID"
+                                            Class="w-100"
+                                            Change="@OnParSelectionChanged" />
                 </div>
             </div>
         </div>
@@ -41,34 +44,34 @@
         <div class="row mb-3">
             <div class="col">
                 <label class="form-label fw-bold">Quantity:</label>
-                <p>@SelectedItemPARData?.ParQty</p>
+                <p>@(SelectedItemPARData?.ParQty.ToString() ?? "N/A")</p>
             </div>
             <div class="col">
                 <label class="form-label fw-bold">Unit (Item Code):</label>
-                <p>@SelectedItemPARData?.ItemCode</p>
+                <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
             </div>
             <div class="col">
                 <label class="form-label fw-bold">Description:</label>
-                <p>@_ItemDescription</p>
+                <p>@(_ItemDescription ?? "N/A")</p>
             </div>
             <div class="col">
                 <label class="form-label fw-bold">Date Acquired:</label>
-                <p>@SelectedItemPARData?.ParDate</p>
+                <p>@(SelectedItemPARData?.ParDate ?? "N/A")</p>
             </div>
             <div class="col">
                 <label class="form-label fw-bold">Property No.:</label>
-                <p>@SelectedItemPARData?.ItemCode</p>
+                <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
             </div>
             <div class="col">
                 <label class="form-label fw-bold">Unit Value:</label>
-                <p>₱@SelectedItemPARData?.value.ToString("N2")</p>
+                <p>₱@(SelectedItemPARData?.value.ToString("N2") ?? "N/A")</p>
             </div>
         </div>
 
         <div class="row mb-3">
             <div class="col">
                 <label class="form-label fw-bold">Surrendered By:</label>
-                <p>@SelectedItemPARData?.ParName</p>
+                <p>@(SelectedItemPARData?.ParName ?? "N/A")</p>
             </div>
         </div>
 
@@ -107,18 +110,19 @@
 
 @code {
     private CancellationTokenSource cts = new CancellationTokenSource();
-    private List<string>? ParIDList;
-    [Parameter] public string SelectedPar { get; set; }
+    private List<ParDisplayInfo>? ParIDList;
+    private string? SelectedPar;
+    private ParDisplayInfo? SelectedParInfo;
     private string? _ItemDescription;
 
-    private List<string>? conditions = new List<string> { "Servicable", "Nonservicable" };
+    private readonly List<string> conditions = new List<string> { "Servicable", "Nonservicable" };
     private List<string>? ItemList;
 
-    private Items SelectedItemData;
-    private PAR SelectedItemPARData;
+    private Items? SelectedItemData;
+    private PAR? SelectedItemPARData;
     private double Price;
 
-    private string SelectedItem { get; set; }
+    private string? SelectedItem;
     private string? Reason;
     private string? Condition;
     private string? ConditionSpecification;
@@ -149,88 +153,162 @@
     private string? Clasification;
     private string? Copies;
 
+    public class ParDisplayInfo
+    {
+        public string ParID { get; set; }
+        public string ItemName { get; set; }
+        public string ParName { get; set; }
+        public string ItemDetails { get; set; }
+        public string List => $"{ParID} - {ItemName} ({ParName})";
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        // Fetch PAR IDs for dropdown
+        Logger.LogInformation("Initializing Surrender component");
         var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
         if (paridresponse.IsSuccessStatusCode)
         {
-            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+            var parIds = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+            if (parIds != null)
+            {
+                ParIDList = new List<ParDisplayInfo>();
+                foreach (var parId in parIds)
+                {
+                    var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{parId}");
+                    if (parResponse.IsSuccessStatusCode)
+                    {
+                        var parData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+                        if (parData != null)
+                        {
+                            var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{parData.ItemName}");
+                            string? itemDetails = descResponse.IsSuccessStatusCode ? await descResponse.Content.ReadAsStringAsync() : null;
+
+                            ParIDList.Add(new ParDisplayInfo
+                                {
+                                    ParID = parId,
+                                    ItemName = parData.ItemName,
+                                    ParName = parData.ParName,
+                                    ItemDetails = itemDetails ?? string.Empty
+                                });
+                        }
+                    }
+                }
+                Logger.LogInformation($"Loaded {ParIDList.Count} PAR IDs");
+            }
         }
         else
         {
-            ParIDList = new List<string>();
+            ParIDList = new List<ParDisplayInfo>();
+            Logger.LogWarning("Failed to fetch PAR IDs: {StatusCode}", paridresponse.StatusCode);
         }
 
-        // Only fetch PAR data if SelectedPar is provided
         if (!string.IsNullOrEmpty(SelectedPar))
         {
+            SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
             await LoadParData();
         }
     }
 
     private async Task OnParSelectionChanged(object value)
     {
-        SelectedPar = value?.ToString();
+        SelectedPar = value as string;
+        SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
+
         if (!string.IsNullOrEmpty(SelectedPar))
         {
             await LoadParData();
         }
+        else
+        {
+            SelectedParInfo = null;
+            SelectedItemPARData = null;
+            SelectedItemData = null;
+            _ItemDescription = null;
+            Price = 0;
+            Condition = null;
+            IsClassification1 = false;
+            IsClassification2 = false;
+            IsClassification3 = false;
+            IsClassification4 = false;
+            IsClassification5 = false;
+            CopiesEndUser = false;
+            CopiesGSO = false;
+            Logger.LogInformation("Cleared PAR selection");
+        }
+        StateHasChanged();
     }
 
     private async Task LoadParData()
     {
-        if (!string.IsNullOrEmpty(SelectedPar))
+        if (string.IsNullOrEmpty(SelectedPar))
         {
-            var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-            if (parResponse.IsSuccessStatusCode)
-            {
-                SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+            Logger.LogWarning("SelectedPar is null or empty. Cannot fetch PAR data.");
+            return;
+        }
 
-                if (SelectedItemPARData != null)
+        Logger.LogInformation("Loading PAR data for {ParID}", SelectedPar);
+        var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+        if (parResponse.IsSuccessStatusCode)
+        {
+            SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+            if (SelectedItemPARData != null)
+            {
+                if (!string.IsNullOrEmpty(SelectedItemPARData.ItemName))
                 {
-                    // Fetch item details
-                    if (!string.IsNullOrEmpty(SelectedItemPARData.ItemName))
+                    var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItemPARData.ItemName}");
+                    if (descResponse.IsSuccessStatusCode)
                     {
-                        var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItemPARData.ItemName}");
-                        if (descResponse.IsSuccessStatusCode)
-                        {
-                            var itemDetails = await descResponse.Content.ReadAsStringAsync();
-                            _ItemDescription = $"{SelectedItemPARData.ItemName} - {itemDetails}";
-                        }
-                        else
-                        {
-                            _ItemDescription = SelectedItemPARData.ItemName;
-                        }
+                        var itemDetails = await descResponse.Content.ReadAsStringAsync();
+                        _ItemDescription = $"{SelectedItemPARData.ItemName} - {itemDetails}";
+                    }
+                    else
+                    {
+                        _ItemDescription = SelectedItemPARData.ItemName;
                     }
 
                     var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemByName/{SelectedItemPARData.ItemName}");
                     if (itemResponse.IsSuccessStatusCode)
                     {
                         SelectedItemData = await itemResponse.Content.ReadFromJsonAsync<Items>();
-
                         var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemPARData.ItemName}");
                         if (priceResponse.IsSuccessStatusCode)
                         {
                             Price = await priceResponse.Content.ReadFromJsonAsync<double>();
                         }
+                        else
+                        {
+                            Logger.LogWarning("Failed to fetch Price for {ItemName}: {StatusCode}", SelectedItemPARData.ItemName, priceResponse.StatusCode);
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Failed to fetch Item data for {ItemName}: {StatusCode}", SelectedItemPARData.ItemName, itemResponse.StatusCode);
                     }
                 }
             }
+            else
+            {
+                Logger.LogWarning("SelectedItemPARData is null after deserialization for {ParID}", SelectedPar);
+            }
         }
+        else
+        {
+            Logger.LogWarning("Failed to fetch PAR data for {ParID}: {StatusCode}", SelectedPar, parResponse.StatusCode);
+        }
+        StateHasChanged();
     }
 
     private async Task SaveToExcel()
     {
         if (SelectedItemPARData == null)
         {
-            Console.WriteLine("No PAR data available to generate surrender form.");
+            Logger.LogWarning("No PAR data available to generate surrender form.");
             return;
         }
 
         if (string.IsNullOrEmpty(Condition))
         {
-            Console.WriteLine("Condition is required to generate surrender form.");
+            Logger.LogWarning("Condition is required to generate surrender form.");
             return;
         }
 
@@ -240,10 +318,8 @@
         if (IsClassification3) classifications.Add("IT Equipment");
         if (IsClassification4) classifications.Add("Other Machinery & Equipment");
         if (IsClassification5) classifications.Add("Communication Equipment");
-
         Classification = string.Join(", ", classifications);
 
-        // Set Copies based on checkbox selections
         var copiesList = new List<string>();
         if (CopiesEndUser) copiesList.Add("End User");
         if (CopiesGSO) copiesList.Add("GSO");
@@ -252,39 +328,48 @@
         if (Condition == "Nonservicable")
         {
             var itemDisposal = new ItemDisposal
-                {
-                    NonServCode = SelectedItemPARData.ItemCode.ToString(),
-                    disposalName = SelectedItemPARData.ItemName,
-                    Description = Reason,
-                    disposalDate = DateOnly.FromDateTime(DateTime.Now)
-                };
+            {
+                NonServCode = SelectedItemPARData.ItemCode.ToString(),
+                disposalName = SelectedItemPARData.ItemName,
+                Description = SelectedItemPARData.ItemDesc,
+                disposalDate = DateOnly.FromDateTime(DateTime.Now)
+            };
 
             var addResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ItemDisposal", itemDisposal);
-            if (addResponse.IsSuccessStatusCode)
+            if (!addResponse.IsSuccessStatusCode)
             {
-                var deleteResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/Item/byItemName/{SelectedItemPARData.ItemName}");
-                if (!deleteResponse.IsSuccessStatusCode)
+                Logger.LogWarning("Failed to insert into ItemDisposal: {StatusCode}", addResponse.StatusCode);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_ItemDescription))
+            {
+                var deleteItemResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/Item/byDescription/{Uri.EscapeDataString(_ItemDescription)}");
+                if (!deleteItemResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Failed to delete item.");
+                    Logger.LogWarning("Failed to delete item from masterlist: {StatusCode}", deleteItemResponse.StatusCode);
                 }
             }
-            else
+
+            var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+            if (!deleteParResponse.IsSuccessStatusCode)
             {
-                Console.WriteLine("Failed to insert into ItemDisposal.");
+                Logger.LogWarning("Failed to delete PAR entry: {StatusCode}", deleteParResponse.StatusCode);
                 return;
             }
         }
+
         var surrenderData = new SurrenderData
             {
                 Quantity = SelectedItemPARData.ParQty.ToString(),
                 ItemCode = SelectedItemPARData.ItemCode,
-                ItemName = _ItemDescription,
-                ParDate = SelectedItemPARData.ParDate,
+                ItemName = _ItemDescription ?? string.Empty,
+                ParDate = SelectedItemPARData.ParDate ?? string.Empty,
                 ParID = SelectedItemPARData.ParID,
                 Value = SelectedItemPARData.value,
                 Price = Price,
-                ParName = SelectedItemPARData.ParName,
-                Condition = Condition,
+                ParName = SelectedItemPARData.ParName ?? string.Empty,
+                Condition = Condition ?? string.Empty,
                 IsClassification1 = IsClassification1,
                 IsClassification2 = IsClassification2,
                 IsClassification3 = IsClassification3,
@@ -293,8 +378,15 @@
                 CopiesEndUser = CopiesEndUser,
                 CopiesGSO = CopiesGSO,
                 Copies = copies,
-                Clasification = Classification
+                Clasification = Classification ?? string.Empty,
+                SurName = SelectedItemPARData.ParName ?? string.Empty,
+                PrpName = _ItemDescription ?? string.Empty,
+                Description = _ItemDescription ?? string.Empty,
+                archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
+                ItemCond = Condition ?? string.Empty,
+                SurQTY = SelectedItemPARData.ParQty
             };
+
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-surrender", surrenderData);
         if (response.IsSuccessStatusCode)
         {
@@ -313,47 +405,38 @@
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Failed to generate PDF file: {errorContent}");
+            Logger.LogError("Failed to generate PDF file: {ErrorContent}", errorContent);
             return;
         }
 
         var archiving = new SurrenderData
             {
-                SurName = SelectedItemPARData.ParName,
-                PrpName = _ItemDescription,
-                Description = _ItemDescription,
+                SurName = SelectedItemPARData.ParName ?? string.Empty,
+                PrpName = _ItemDescription ?? string.Empty,
+                Description = _ItemDescription ?? string.Empty,
                 archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
                 Value = SelectedItemPARData.value,
-                ItemCond = Condition,
+                ItemCond = Condition ?? string.Empty,
                 SurQTY = SelectedItemPARData.ParQty,
-                Clasification = Classification,
+                Clasification = Classification ?? string.Empty,
                 Copies = copies
             };
 
         var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
         if (!archiveResponse.IsSuccessStatusCode)
         {
-            Console.WriteLine($"Failed to archive transaction. Status: {archiveResponse.StatusCode}, Reason: {archiveResponse.ReasonPhrase}");
+            Logger.LogWarning("Failed to archive transaction: {StatusCode}, Reason: {ReasonPhrase}", archiveResponse.StatusCode, archiveResponse.ReasonPhrase);
         }
         else
         {
-            Console.WriteLine("Archive inserted successfully.");
-        }
-
-        var deleteParResponse = await HttpClient.DeleteAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-        if (!deleteParResponse.IsSuccessStatusCode)
-        {
-            Console.WriteLine("Failed to delete PAR.");
-        }
-        else
-        {
-            Console.WriteLine("PAR deleted successfully.");
+            Logger.LogInformation("Archive inserted successfully.");
         }
     }
+
     public void Dispose()
     {
-        cts.Cancel(); // Cancel any pending operations
-        cts.Dispose(); // Dispose the cancellation token source
+        cts.Cancel();
+        cts.Dispose();
     }
 
     public class PAR
@@ -361,6 +444,7 @@
         public string ParID { get; set; }
         public int ItemCode { get; set; }
         public string ItemName { get; set; }
+        public string ItemDesc { get; set; }
         public string ParName { get; set; }
         public string ParDate { get; set; }
         public double value { get; set; }
@@ -372,6 +456,7 @@
     {
         public int ItemCode { get; set; }
         public string ItemName { get; set; }
+        public string ItemDeets { get; set; }
     }
 
     public class ItemDisposal

@@ -9,6 +9,7 @@
 @inject HttpClient HttpClient
 @inject IJSRuntime JSRuntime
 @inject IModalService ModalService
+@inject ILogger<ICS> Logger
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -23,14 +24,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Select PAR ID:</label>
+                    <label class="form-label fw-bold">Select ID:</label>
                     <RadzenDropDownDataGrid @bind-Value="SelectedPar"
-                                          Data="ParIDList"
-                                          AllowClear="true"
-                                          AllowFiltering="true"
-                                          Placeholder="Select an ID"
-                                          Class="w-100"
-                                          Change="@OnParSelectionChanged" />
+                                            Data="ParIDList"
+                                            TextProperty="List"
+                                            ValueProperty="ParID"
+                                            AllowClear="true"
+                                            AllowFiltering="true"
+                                            Placeholder="Select an ID"
+                                            Class="w-100"
+                                            Change="@OnParSelectionChanged" />
                 </div>
             </div>
         </div>
@@ -43,44 +46,44 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">PAR Number:</label>
-                        <p>@SelectedPar</p>
+                        <p>@(SelectedPar ?? "N/A")</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Name:</label>
-                        <p>@Name</p>
+                        <p>@(Name ?? "N/A")</p>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Item Code:</label>
-                        <p>@SelectedItemPARData?.ItemCode</p>
+                        <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Description:</label>
-                        <p>@_ItemDescription</p>
+                        <p>@(_ItemDescription ?? "N/A")</p>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Quantity:</label>
-                        <p>@SelectedItemPARData?.ParQty</p>
+                        <p>@(SelectedItemPARData?.ParQty.ToString() ?? "N/A")</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Price:</label>
-                        <p>₱@_Price.ToString("N2")</p>
+                        <p>₱@(_Price.ToString("N2") ?? "N/A")</p>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Lifetime:</label>
-                        <p>@_Life years</p>
+                        <p>@(_Life > 0 ? $"{_Life} years" : "N/A")</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">CST Code:</label>
-                        <p>@SelectedCstData?.CSTCode</p>
+                        <p>@(SelectedCstData?.CSTCode ?? "N/A")</p>
                     </div>
                 </div>
 
@@ -117,63 +120,113 @@
 @code {
     private CancellationTokenSource cts = new CancellationTokenSource();
 
-    private List<string>? ParIDList;
-    [Parameter] public string SelectedPar { get; set; }
-    private PAR SelectedItemPARData;
-    private Custodian SelectedCstData;
-    private string? _ItemDescription;
+    public class ParDisplayInfo
+    {
+        public string ParID { get; set; } = string.Empty;
+        public string ItemName { get; set; } = string.Empty;
+        public string ParName { get; set; } = string.Empty;
+        public string ItemDetails { get; set; } = string.Empty;
+        public string List => $"{ParID} - {ItemName} ({ParName})";
+    }
 
+    private List<ParDisplayInfo>? ParIDList;
+    private string? SelectedPar;
+    private ParDisplayInfo? SelectedParInfo;
+    private PAR? SelectedItemPARData;
+    private Custodian? SelectedCstData;
+    private string? _ItemDescription;
     private string? Name;
     private double _Price;
     private int _Life;
     private string? _Position;
-
     private bool _isGenerating;
 
     protected override async Task OnInitializedAsync()
     {
-        // Fetch PAR IDs for dropdown
+        Logger.LogInformation("Initializing ICS component");
         var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
         if (paridresponse.IsSuccessStatusCode)
         {
-            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+            var parIds = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+            if (parIds != null)
+            {
+                ParIDList = new List<ParDisplayInfo>();
+                foreach (var parId in parIds)
+                {
+                    var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{parId}");
+                    if (parResponse.IsSuccessStatusCode)
+                    {
+                        var parData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+                        if (parData != null)
+                        {
+                            var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{parData.ItemName}");
+                            string itemDetails = descResponse.IsSuccessStatusCode ? await descResponse.Content.ReadAsStringAsync() : "";
+
+                            ParIDList.Add(new ParDisplayInfo
+                                {
+                                    ParID = parId,
+                                    ItemName = parData.ItemName,
+                                    ParName = parData.ParName,
+                                    ItemDetails = itemDetails
+                                });
+                        }
+                    }
+                }
+                Logger.LogInformation($"Loaded {ParIDList.Count} PAR IDs");
+            }
         }
         else
         {
-            ParIDList = new List<string>();
+            ParIDList = new List<ParDisplayInfo>();
+            Logger.LogWarning("Failed to fetch PAR IDs: {StatusCode}", paridresponse.StatusCode);
         }
 
-        // Only fetch PAR data if SelectedPar is provided
         if (!string.IsNullOrEmpty(SelectedPar))
         {
+            SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
             await LoadParData();
         }
     }
 
     private async Task OnParSelectionChanged(object value)
     {
-        SelectedPar = value?.ToString();
+        SelectedPar = value as string;
+        SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
+
         if (!string.IsNullOrEmpty(SelectedPar))
         {
             await LoadParData();
         }
+        else
+        {
+            SelectedParInfo = null;
+            SelectedItemPARData = null;
+            SelectedCstData = null;
+            _ItemDescription = null;
+            Name = null;
+            _Price = 0;
+            _Life = 0;
+            _Position = null;
+            Logger.LogInformation("Cleared PAR selection");
+        }
+        StateHasChanged();
     }
 
     private async Task LoadParData()
     {
         if (string.IsNullOrEmpty(SelectedPar))
         {
-            Console.WriteLine("SelectedPar is null or empty. Cannot fetch PAR data.");
+            Logger.LogWarning("SelectedPar is null or empty. Cannot fetch PAR data.");
             return;
         }
 
+        Logger.LogInformation("Loading PAR data for {ParID}", SelectedPar);
         var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
         if (parResponse.IsSuccessStatusCode)
         {
             SelectedItemPARData = await parResponse.Content.ReadFromJsonAsync<PAR>();
             if (SelectedItemPARData != null)
             {
-                // Fetch item details
                 var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedItemPARData.ItemName}");
                 if (descResponse.IsSuccessStatusCode)
                 {
@@ -192,7 +245,7 @@
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to fetch Price: {await priceResponse.Content.ReadAsStringAsync()}");
+                    Logger.LogWarning("Failed to fetch Price: {StatusCode}", priceResponse.StatusCode);
                 }
 
                 var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/getparname/{SelectedItemPARData.ParID}");
@@ -202,7 +255,7 @@
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to fetch Name: {await response.Content.ReadAsStringAsync()}");
+                    Logger.LogWarning("Failed to fetch Name: {StatusCode}", response.StatusCode);
                 }
 
                 var liferesponse = await HttpClient.GetAsync($"https://localhost:7041/api/Items/getLifetimeByName/{SelectedItemPARData.ItemName}");
@@ -212,7 +265,7 @@
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to fetch Life: {await liferesponse.Content.ReadAsStringAsync()}");
+                    Logger.LogWarning("Failed to fetch Life: {StatusCode}", liferesponse.StatusCode);
                 }
 
                 var cstResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Custodian/getCstCode/{SelectedItemPARData.ParName}");
@@ -223,66 +276,66 @@
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to fetch CST Code: {await cstResponse.Content.ReadAsStringAsync()}");
+                    Logger.LogWarning("Failed to fetch CST Code: {StatusCode}", cstResponse.StatusCode);
                 }
             }
             else
             {
-                Console.WriteLine("SelectedItemPARData is null after deserialization.");
+                Logger.LogWarning("SelectedItemPARData is null after deserialization for {ParID}", SelectedPar);
             }
         }
         else
         {
-            Console.WriteLine($"Failed to fetch PAR data: {await parResponse.Content.ReadAsStringAsync()}");
+            Logger.LogWarning("Failed to fetch PAR data for {ParID}: {StatusCode}", SelectedPar, parResponse.StatusCode);
         }
+        StateHasChanged();
     }
 
     private async Task GenerateExcel()
     {
         if (SelectedItemPARData == null)
         {
-            Console.WriteLine("No PAR data available to generate ICS form.");
+            Logger.LogWarning("No PAR data available to generate ICS form.");
             return;
         }
         if (_isGenerating)
         {
-            Console.WriteLine("GenerateExcel is already in progress. Ignoring duplicate call.");
+            Logger.LogInformation("Generate ścianExcel is already in progress. Ignoring duplicate call.");
             return;
         }
 
         _isGenerating = true;
-        Console.WriteLine("Starting GenerateExcel");
+        Logger.LogInformation("Starting GenerateExcel");
 
         if (string.IsNullOrEmpty(_Position))
         {
-            Console.WriteLine("Position is required to generate ICS form.");
-            return;
-        }
-
-        var icsData = new ICSData
-        {
-            ItemCode = SelectedItemPARData.ItemCode,
-            Description = _ItemDescription,
-            CSTCode = SelectedCstData?.CSTCode,
-            ICSName = Name,
-            ICSPrice = _Price,
-            LifeTime = _Life,
-            Qty = SelectedItemPARData.ParQty,
-            IcsDate = DateOnly.FromDateTime(DateTime.Now),
-            FundCluster = "GF",
-            Position = _Position
-        };
-
-        // First save the ICS data
-        var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
-        if (!icsResponse.IsSuccessStatusCode)
-        {
-            Console.WriteLine($"Failed to save ICS data. Status: {icsResponse.StatusCode}, Reason: {icsResponse.ReasonPhrase}");
+            Logger.LogWarning("Position is required to generate ICS form.");
             _isGenerating = false;
             return;
         }
 
-        // Then generate the Excel/PDF
+        var icsData = new ICSData
+            {
+                ItemCode = SelectedItemPARData.ItemCode,
+                Description = _ItemDescription,
+                CSTCode = SelectedCstData?.CSTCode,
+                ICSName = Name,
+                ICSPrice = _Price,
+                LifeTime = _Life,
+                Qty = SelectedItemPARData.ParQty,
+                IcsDate = DateOnly.FromDateTime(DateTime.Now),
+                FundCluster = "GF",
+                Position = _Position
+            };
+
+        var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
+        if (!icsResponse.IsSuccessStatusCode)
+        {
+            Logger.LogError("Failed to save ICS data. Status: {StatusCode}, Reason: {ReasonPhrase}", icsResponse.StatusCode, icsResponse.ReasonPhrase);
+            _isGenerating = false;
+            return;
+        }
+
         var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-ics", icsData);
         if (excelResponse.IsSuccessStatusCode)
         {
@@ -292,46 +345,48 @@
             var parameters = new ModalParameters();
             parameters.Add("PdfBase64", pdfBase64);
             var options = new ModalOptions
-            {
-                HideCloseButton = true,
-                DisableBackgroundCancel = true
-            };
+                {
+                    HideCloseButton = true,
+                    DisableBackgroundCancel = true
+                };
             ModalService.Show<ICSPreview>("Preview", parameters, options);
         }
         else
         {
             var errorContent = await excelResponse.Content.ReadAsStringAsync();
-            Console.WriteLine($"Failed to generate ICS PDF. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
+            Logger.LogError("Failed to generate ICS PDF. Status: {StatusCode}, Reason: {ReasonPhrase}, Content: {Content}", excelResponse.StatusCode, excelResponse.ReasonPhrase, errorContent);
         }
 
         _isGenerating = false;
+        StateHasChanged();
     }
+
     public void Dispose()
     {
-        cts.Cancel(); // Cancel any pending operations
-        cts.Dispose(); // Dispose the cancellation token source
+        cts.Cancel();
+        cts.Dispose();
     }
 
     public class PAR
     {
-        public string ParID { get; set; }
+        public string ParID { get; set; } 
         public int ItemCode { get; set; }
-        public string ItemName { get; set; }
-        public string ParName { get; set; }
+        public string ItemName { get; set; } 
+        public string ParName { get; set; } 
         public int ParQty { get; set; }
     }
 
     public class Custodian
     {
-        public string CSTCode { get; set; }
+        public string CSTCode { get; set; } 
     }
 
     public class ICSData
     {
         public int ICSID { get; set; }
         public int ItemCode { get; set; }
-        public string Description { get; set; }
-        public string CSTCode { get; set; }
+        public string Description { get; set; } 
+        public string CSTCode { get; set; } 
         public string ICSName { get; set; }
         public double ICSPrice { get; set; }
         public int LifeTime { get; set; }

@@ -8,6 +8,7 @@ namespace APIFinal.Models
         [Key]
         public string NonServCode { get; set; }
         public string disposalName { get; set; }
+        public int StockOfDisposal { get; set; }
         public string Description { get; set; }
         public DateOnly disposalDate { get; set; }
     }

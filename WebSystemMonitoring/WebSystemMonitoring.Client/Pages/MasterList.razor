@@ -202,10 +202,16 @@
         <i class="fas fa-table text-blue-700"></i>
         Transfer Records
     </h1>
-    <button class="collapse-button @(isTransferListCollapsed ? "collapsed" : "")" @onclick="ToggleTransferList">
-        <i class="fas fa-chevron-down"></i>
-        @(isTransferListCollapsed ? "Expand" : "Collapse")
-    </button>
+    <div class="flex items-center gap-3">
+        <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 
+                       active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransferTable">
+            <i class="fas fa-external-link-alt text-blue-700"></i> See All
+        </button>
+        <button class="collapse-button @(isTransferListCollapsed ? "collapsed" : "")" @onclick="ToggleTransferList">
+            <i class="fas fa-chevron-down"></i>
+            @(isTransferListCollapsed ? "Expand" : "Collapse")
+        </button>
+    </div>
 </div>
 
 <div class="table-section @(isTransferListCollapsed ? "collapsed" : "")">
@@ -223,29 +229,16 @@
                         Responsive="true"
                         Style="width: 100%;">
             <Columns>
-                <RadzenDataGridColumn TItem="Transfer" Property="PrtId" Title="PRT ID" />
+                <RadzenDataGridColumn TItem="Transfer" Property="PtrId" Title="PRT ID" />
                 <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Item Code" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
-                <RadzenDataGridColumn TItem="Transfer" Property="CstCode" Title="CST Code" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
                 <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
-                <RadzenDataGridColumn TItem="Transfer" Property="rvName" Title="Receive Name" />
                 <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="Transfer Type" />
-                <RadzenDataGridColumn TItem="Transfer" Property="fundccl" Title="Fund CCL" />
                 <RadzenDataGridColumn TItem="Transfer" Property="from" Title="From" />
                 <RadzenDataGridColumn TItem="Transfer" Property="to" Title="To" />
                 <RadzenDataGridColumn TItem="Transfer" Property="reason" Title="Reason" />
-                <RadzenDataGridColumn TItem="Transfer" Property="apprvdBy" Title="Approved By" />
-                <RadzenDataGridColumn TItem="Transfer" Property="designationOf" Title="Designation Of" />
-                <RadzenDataGridColumn TItem="Transfer" Property="approvedByDate" Title="Approved By Date" />
-                <RadzenDataGridColumn TItem="Transfer" Property="releaseBy" Title="Released By" />
-                <RadzenDataGridColumn TItem="Transfer" Property="designationRelease" Title="Designation Release" />
-                <RadzenDataGridColumn TItem="Transfer" Property="releaseByDate" Title="Release By Date" />
-                <RadzenDataGridColumn TItem="Transfer" Property="receivedBy" Title="Received By" />
-                <RadzenDataGridColumn TItem="Transfer" Property="designationReceived" Title="Designation Received" />
-                <RadzenDataGridColumn TItem="Transfer" Property="receivedByDate" Title="Received By Date" />
-                <RadzenDataGridColumn TItem="Transfer" Property="dateAcquired" Title="Date Acquired" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Amount" Title="Amount" />
             </Columns>
         </RadzenDataGrid>
@@ -287,8 +280,9 @@
                 <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
                 <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />
                 <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
-                <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
-                <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" />
+                <RadzenDataGridColumn TItem="Items" Property="Stock" Title="Stock" />
+                @* <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
+                <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" /> *@
                 <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
             </Columns>
         </RadzenDataGrid>
@@ -441,7 +435,7 @@
                 HideCloseButton = true,
                 Size = ModalSize.Automatic
             };
-        ModalService.Show<ItemDisposal>("Item Disposal", options);
+        ModalService.Show<ItemDisposalTable>("Item Disposal", options);
     }
 
     private void ToggleEntryList()
@@ -460,5 +454,14 @@
     {
         isItemListCollapsed = !isItemListCollapsed;
         StateHasChanged();
+    }
+
+    private void ShowTransferTable()
+    {
+        var options = new ModalOptions
+            {
+                Size = ModalSize.Automatic
+            };
+        ModalService.Show<TransferTableModal>("Transfer Records", options);
     }
 }

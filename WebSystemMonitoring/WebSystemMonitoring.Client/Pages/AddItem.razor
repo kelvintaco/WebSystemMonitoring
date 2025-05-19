@@ -27,39 +27,44 @@
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Item Serial" Component="ItemCode" />
                     <RadzenNumeric @bind-Value="ItemCode" Name="ItemCode" Required="true"
-                                   Style="width: 100%;" placeholder="Enter item serial" Min="1" />
+                    Style="width: 100%;" placeholder="Enter item serial" Min="1" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Item Name" Component="ItemName" />
                     <RadzenTextBox @bind-Value="ItemName" Name="ItemName" Required="true" 
-                                   Style="width: 100%;" placeholder="Enter item name" />
+                    Style="width: 100%;" placeholder="Enter item name" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Details" Component="ItemDeets" />
                     <RadzenTextBox @bind-Value="ItemDeets" Name="ItemDeets" Required="true"
-                                   Style="width: 100%;" placeholder="Enter item details" />
+                    Style="width: 100%;" placeholder="Enter item details" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Price" />
                     <RadzenTextBox @bind-Value="priceInput" Name="Price" Required="true" 
-                                   Style="width: 100%;" placeholder="Enter price" 
-                                   Change="@OnPriceChange" Pattern="[0-9]*\.?[0-9]*" />
+                    Style="width: 100%;" placeholder="Enter price" 
+                    Change="@OnPriceChange" Pattern="[0-9]*\.?[0-9]*" />
+                </div>
+                <div class="form-group mb-3">
+                    <RadzenLabel Text="Item Stock" Component="Stock" />
+                    <RadzenNumeric @bind-Value="Stock" Name="Stock" Required="true"
+                    Style="width: 100%;" placeholder="How many stock?" Min="1" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Place" Component="Place" />
                     <RadzenTextBox @bind-Value="Place" Name="Place" Required="true" 
-                                   Style="width: 100%;" placeholder="Enter place" />
+                    Style="width: 100%;" placeholder="Enter place" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenLabel Text="Life Time (in years)" Component="LifeTime" />
                     <RadzenNumeric @bind-Value="LifeTime" Name="LifeTime" Required="true" 
-                                   Style="width: 100%;" placeholder="Enter life time" Min="1" />
+                    Style="width: 100%;" placeholder="Enter life time" Min="1" />
                 </div>
                 <div class="form-group mb-3">
                     <RadzenButton Click="@FormSubmit" Text="Submit" ButtonStyle="ButtonStyle.Primary" 
-                                  Style="margin-right: 10px;" />
+                    Style="margin-right: 10px;" />
                     <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" 
-                                  Click="@Cancel" />
+                    Click="@Cancel" />
                 </div>
             </div>
         </div>
@@ -73,6 +78,7 @@
     private int ItemCode;
     private string ItemName;
     private double Price;
+    private int Stock;
     private string Place;
     private int LifeTime;
     private string ItemDeets;
@@ -89,13 +95,12 @@
     {
         try
         {
-            Logger.LogInformation($"Form values: ItemCode={ItemCode}, ItemName={ItemName}, Price={Price}, Place={Place}, LifeTime={LifeTime}");
+            //Logger.LogInformation($"Form values: ItemCode={ItemCode}, ItemName={ItemName}, Price={Price}, Place={Place}, LifeTime={LifeTime}");
             var formData = new Items
             {
                 ItemName = ItemName,
                 Price = Price,
-                isonBorrow = 0,
-                isnotonBorrow = 1,
+				Stock = Stock,
                 Servicable = true,
                 NonServ = false,
                 Place = Place,
@@ -150,7 +155,7 @@
 
         if (!result.Cancelled)
         {
-            NavigationManager.NavigateTo("/itemlist", forceLoad: true);
+            NavigationManager.NavigateTo("/masterlist", forceLoad: true);
         }
     }
 

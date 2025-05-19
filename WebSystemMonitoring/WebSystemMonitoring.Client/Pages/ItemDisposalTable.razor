@@ -6,12 +6,13 @@
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 
 <h1>Item Disposal</h1>
-<RadzenDataGrid class="pardatagrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
+<RadzenDataGrid class="disposalgrid" @ref="disposalgrid" Data="@_itemdisposals" TItem="ItemDisposal" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10">
     <Columns>
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="NonServCode" />
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="disposalName" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="NonServCode" Title="Item Code" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalName" Title="Item Name" />
         <RadzenDataGridColumn TItem="ItemDisposal" Property="Description" Title="Description" />
-        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalDate" Title="disposalDate" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="StockOfDisposal" Title="Stock" />
+        <RadzenDataGridColumn TItem="ItemDisposal" Property="disposalDate" Title="Disposal Date" />
     </Columns>
 </RadzenDataGrid>
 <div class="button-row" style="margin-top: 20px;">

@@ -9,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient HttpClient
 @inject IModalService ModalService
+@inject ILogger<Transfer> Logger
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -23,14 +24,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Select PAR ID:</label>
+                    <label class="form-label fw-bold">Select ID:</label>
                     <RadzenDropDownDataGrid @bind-Value="SelectedPar"
-                                          Data="ParIDList"
-                                          AllowClear="true"
-                                          AllowFiltering="true"
-                                          Placeholder="Select an ID"
-                                          Class="w-100"
-                                          Change="@OnParSelectionChanged" />
+                                            Data="ParIDList"
+                                            TextProperty="List"
+                                            ValueProperty="ParID"
+                                            AllowClear="true"
+                                            AllowFiltering="true"
+                                            Placeholder="Select an ID"
+                                            Class="w-100"
+                                            Change="@OnParSelectionChanged" />
                 </div>
             </div>
         </div>
@@ -41,7 +44,7 @@
         <div class="row mb-2">
             <div class="col-md-6">
                 <label class="form-label fw-bold">Entity Name:</label>
-                <p>@SelectedParData?.ParName</p>
+                <p>@(SelectedParData?.ParName ?? "N/A")</p>
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold">Fund Cluster:</label>
@@ -65,7 +68,7 @@
         <div class="row mb-2">
             <div class="col-md-6">
                 <label class="form-label fw-bold">PTR No.:</label>
-                <p>@SelectedParData?.ItemCode</p>
+                <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
             </div>
         </div>
         <div class="row mb-2">
@@ -89,15 +92,15 @@
         <div class="row mb-2">
             <div class="col-md-2">
                 <label class="form-label fw-bold">Date Acquired:</label>
-                <p>@SelectedParData?.ParDate</p>
+                <p>@(SelectedParData?.ParDate ?? "N/A")</p>
             </div>
             <div class="col-md-2">
                 <label class="form-label fw-bold">Property No.:</label>
-                <p>@SelectedParData?.ItemCode</p>
+                <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-bold">Description:</label>
-                <p>@_ItemDescription</p>
+                <p>@(_ItemDescription ?? "N/A")</p>
             </div>
             <div class="col-md-2">
                 <label class="form-label fw-bold">Condition of PPE:</label>
@@ -133,311 +136,24 @@
         <div class="row mb-2">
             <div class="col-12">
                 <RadzenButton Text="Submit" Click="OnSubmit" ButtonStyle="ButtonStyle.Primary" />
+               @*  <RadzenButton Text="Test Modal" Click="TestModal" ButtonStyle="ButtonStyle.Secondary" /> *@
             </div>
         </div>
     }
 </div>
 
+<CascadingBlazoredModal></CascadingBlazoredModal>
+
 @code {
     private CancellationTokenSource cts = new CancellationTokenSource();
 
-    private List<string>? ParIDList;
-    [Parameter] public string SelectedPar { get; set; }
-    private Transfer Transfer;
-    private PAR SelectedParData;
-    private Items SelectedItemData;
-    private Custodian SelectedCstData;
-    private string? _ItemDescription;
-
-    public string? FundCluster;
-    public string? FromName;
-    public string? ToName;
-    public bool TransferType1;
-    public bool TransferType2;
-    public bool TransferType3;
-    public bool TransferType4;
-    public string? TransferType4Details;
-    public string? ReasonForTransfer;
-    public string? ApprovedBy;
-    public string? ReleasedBy;
-    public string? ReceivedBy;
-    public string? Designation;
-    public string? ItemCondition;
-    public DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
-    public DateOnly ApprovedDate = DateOnly.FromDateTime(DateTime.Today);
-    public DateOnly ReleasedDate = DateOnly.FromDateTime(DateTime.Today);
-    public DateOnly ReceivedDate = DateOnly.FromDateTime(DateTime.Today);
-
-    private int PrtId;
-    private int ItemCode;
-    private string? Description;
-    private int CstCode;
-    private string? Name;
-    private DateOnly dateTransferred;
-    private string? Condition;
-    public string? receiveName;
-    private string? TransferType;
-    public string dateAcquired;
-    public string designationRelease;
-    public string designationReceived;
-    public string fundccl;
-
-    protected override async Task OnInitializedAsync()
+    public class ParDisplayInfo
     {
-        // Fetch PAR IDs for dropdown
-        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
-        if (paridresponse.IsSuccessStatusCode)
-        {
-            ParIDList = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
-        }
-        else
-        {
-            ParIDList = new List<string>();
-        }
-
-        // Only fetch PAR data if SelectedPar is provided
-        if (!string.IsNullOrEmpty(SelectedPar))
-        {
-            await LoadParData();
-        }
-    }
-
-    private async Task OnParSelectionChanged(object value)
-    {
-        SelectedPar = value?.ToString();
-        if (!string.IsNullOrEmpty(SelectedPar))
-        {
-            await LoadParData();
-        }
-    }
-
-    private async Task LoadParData()
-    {
-        if (string.IsNullOrEmpty(SelectedPar))
-        {
-            Console.WriteLine("SelectedPar is null or empty. Cannot fetch PAR data.");
-            return;
-        }
-
-        Console.WriteLine($"Fetching PAR data for SelectedPar: {SelectedPar}");
-        var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
-        if (response.IsSuccessStatusCode)
-        {
-            SelectedParData = await response.Content.ReadFromJsonAsync<PAR>();
-            if (SelectedParData == null)
-            {
-                Console.WriteLine("SelectedParData is null after deserialization.");
-                return;
-            }
-
-            // Fetch item details
-            if (!string.IsNullOrEmpty(SelectedParData.ItemName))
-            {
-                var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedParData.ItemName}");
-                if (descResponse.IsSuccessStatusCode)
-                {
-                    var itemDetails = await descResponse.Content.ReadAsStringAsync();
-                    _ItemDescription = $"{SelectedParData.ItemName} - {itemDetails}";
-                }
-                else
-                {
-                    _ItemDescription = SelectedParData.ItemName;
-                }
-            }
-
-            Console.WriteLine($"SelectedParData retrieved: ItemName={SelectedParData.ItemName}, ParName={SelectedParData.ParName}");
-
-            // Fetch Item data
-            if (!string.IsNullOrEmpty(SelectedParData.ItemName))
-            {
-                Console.WriteLine($"Fetching Item data for ItemName: {SelectedParData.ItemName}");
-                var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemByName/{SelectedParData.ItemName}");
-                if (itemResponse.IsSuccessStatusCode)
-                {
-                    SelectedItemData = await itemResponse.Content.ReadFromJsonAsync<Items>();
-                    Console.WriteLine(SelectedItemData != null
-                        ? "SelectedItemData retrieved successfully."
-                        : "SelectedItemData is null after deserialization.");
-                }
-                else
-                {
-                    var errorContent = await itemResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Failed to fetch Item data. Status: {itemResponse.StatusCode}, Reason: {itemResponse.ReasonPhrase}, Content: '{errorContent}'");
-                }
-            }
-            else
-            {
-                Console.WriteLine("SelectedParData.ItemName is null or empty. Cannot fetch Item data.");
-            }
-
-            // Fetch Custodian data
-            if (!string.IsNullOrEmpty(SelectedParData.ParName))
-            {
-                Console.WriteLine($"Fetching Custodian CSTCode for ParName: {SelectedParData.ParName}");
-                var cstResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Custodian/getCstCode/{SelectedParData.ParName}");
-                if (cstResponse.IsSuccessStatusCode)
-                {
-                    var cstCode = await cstResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Raw Custodian response: {cstCode}");
-                    if (!string.IsNullOrEmpty(cstCode))
-                    {
-                        SelectedCstData = new Custodian { CSTCode = cstCode };
-                        Console.WriteLine($"SelectedCstData CSTCode retrieved: {SelectedCstData.CSTCode}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("CSTCode is empty in the response.");
-                    }
-                }
-                else
-                {
-                    var errorContent = await cstResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Failed to fetch Custodian CSTCode. Status: {cstResponse.StatusCode}, Reason: {cstResponse.ReasonPhrase}, Content: '{errorContent}'");
-                }
-            }
-            else
-            {
-                Console.WriteLine("SelectedParData.ParName is null or empty. Cannot fetch Custodian data.");
-            }
-        }
-        else
-        {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Failed to fetch PAR data. Status: {response.StatusCode}, Reason: {response.ReasonPhrase}, Content: '{errorContent}'");
-        }
-    }
-
-    private async Task OnSubmit()
-    {
-        if (SelectedParData == null || SelectedCstData == null)
-        {
-            Console.WriteLine("Required data is missing (PAR or Custodian data).");
-            return;
-        }
-
-        if (string.IsNullOrEmpty(ItemCondition) || string.IsNullOrEmpty(ReasonForTransfer) || string.IsNullOrEmpty(ApprovedBy) ||
-            string.IsNullOrEmpty(ReleasedBy) || string.IsNullOrEmpty(ReceivedBy) || string.IsNullOrEmpty(Designation))
-        {
-            Console.WriteLine("Required fields (ItemCondition, ReasonForTransfer, ApprovedBy, ReleasedBy, ReceivedBy, Designation) are missing.");
-            return;
-        }
-
-        string transferType = GetTransferType();
-        if (transferType == "None")
-        {
-            Console.WriteLine("A transfer type must be selected.");
-            return;
-        }
-
-        var transfer = new TransferData
-            {
-                ItemCode = SelectedParData.ItemCode,
-                Description = _ItemDescription,
-                CstCode = SelectedCstData.CSTCode,
-                Name = SelectedParData.ParName,
-                DateTransferred = Date,
-                Condition = ItemCondition,
-                rvName = ReceivedBy,
-                TransferType = transferType,
-                apprvdBy = ApprovedBy,
-                approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
-                designationOf = Designation,
-                designationReceived = Designation,
-                designationRelease = Designation,
-                from = FromName,
-                fundccl = FundCluster,
-                reason = ReasonForTransfer,
-                receivedBy = ReceivedBy,
-                receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
-                releaseBy = ReleasedBy,
-                releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
-                to = ToName,
-                dateAcquired = SelectedParData.ParDate,
-                Amount = SelectedParData.ParQty
-            };
-
-        var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transfer);
-        if (insertResponse.IsSuccessStatusCode)
-        {
-            Console.WriteLine("Transfer data inserted successfully.");
-
-            var transferexcel = new TransferData
-                {
-                    ItemCode = SelectedParData.ItemCode,
-                    Description = _ItemDescription,
-                    CstCode = SelectedCstData.CSTCode,
-                    Name = SelectedParData.ParName,
-                    DateTransferred = Date,
-                    Condition = ItemCondition,
-                    ReceiveName = ReceivedBy,
-					rvName = ReceivedBy,
-                    TransferType = transferType,
-                    FundCluster = FundCluster,
-					fundccl = FundCluster,
-                    FromName = FromName,
-					from = FromName,
-                    ToName = ToName,
-                    to = ToName,
-                    ReasonForTransfer = ReasonForTransfer,
-					reason = ReasonForTransfer,
-                    ApprovedBy = ApprovedBy,
-					apprvdBy = ApprovedBy,
-                    ReleasedBy = ReleasedBy,
-					releaseBy = ReleasedBy,
-                    receivedBy = ReceivedBy,
-                    Designation = Designation,
-					designationOf = Designation,
-                    approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
-                    releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
-                    receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
-                    dateAcquired = SelectedParData.ParDate,
-                    Amount = SelectedParData.ParQty,
-                    designationRelease = designationRelease,
-                    designationReceived = designationReceived
-                };
-
-            // Generate PDF file
-            var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-transfer", transferexcel);
-            if (excelResponse.IsSuccessStatusCode)
-            {
-                var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
-                var pdfBase64 = Convert.ToBase64String(fileBytes);
-
-                // Open preview modal
-                var parameters = new ModalParameters();
-                parameters.Add("PdfBase64", pdfBase64);
-				var options = new ModalOptions
-					{
-						HideCloseButton = true,
-						DisableBackgroundCancel = true
-					};
-                ModalService.Show<TransferPreview>("Preview", parameters, options);
-            }
-            else
-            {
-                var errorContent = await excelResponse.Content.ReadAsStringAsync();
-                Console.WriteLine($"Failed to generate PDF file. Status: {excelResponse.StatusCode}, Reason: {excelResponse.ReasonPhrase}, Content: '{errorContent}'");
-            }
-        }
-        else
-        {
-            var errorContent = await insertResponse.Content.ReadAsStringAsync();
-            Console.WriteLine($"Failed to insert transfer data. Status: {insertResponse.StatusCode}, Reason: {insertResponse.ReasonPhrase}, Content: '{errorContent}'");
-        }
-    }
-
-    private string GetTransferType()
-    {
-        if (TransferType1) return "Donation";
-        if (TransferType2) return "Relocate";
-        if (TransferType3) return "Reassignment";
-        if (TransferType4) return $"{TransferType4Details ?? "No details provided"}";
-        return "None"; // Default if no transfer type is selected
-    }
-    public void Dispose()
-    {
-        cts.Cancel(); // Cancel any pending operations
-        cts.Dispose(); // Dispose the cancellation token source
+        public string ParID { get; set; }
+        public string ItemName { get; set; }
+        public string ParName { get; set; }
+        public string ItemDetails { get; set; }
+        public string List => $"{ParID} - {ItemName} ({ParName})";
     }
 
     public class PAR
@@ -495,5 +211,348 @@
         public string dateAcquired { get; set; }
         public int Amount { get; set; }
         public string rvName { get; set; }
+    }
+
+    private List<ParDisplayInfo>? ParIDList;
+    private string? SelectedPar;
+    private ParDisplayInfo? SelectedParInfo;
+    private TransferData? Transfer;
+    private PAR? SelectedParData;
+    private Items? SelectedItemData;
+    private Custodian? SelectedCstData;
+    private string? _ItemDescription;
+
+    public string? FundCluster;
+    public string? FromName;
+    public string? ToName;
+    public bool TransferType1;
+    public bool TransferType2;
+    public bool TransferType3;
+    public bool TransferType4;
+    public string? TransferType4Details;
+    public string? ReasonForTransfer;
+    public string? ApprovedBy;
+    public string? ReleasedBy;
+    public string? ReceivedBy;
+    public string? Designation;
+    public string? ItemCondition;
+    public DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ApprovedDate = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ReleasedDate = DateOnly.FromDateTime(DateTime.Today);
+    public DateOnly ReceivedDate = DateOnly.FromDateTime(DateTime.Today);
+
+    private int PrtId;
+    private int ItemCode;
+    private string? Description;
+    private int CstCode;
+    private string? Name;
+    private DateOnly dateTransferred;
+    private string? Condition;
+    public string? receiveName;
+    private string? TransferType;
+    public string? dateAcquired;
+    public string? designationRelease;
+    public string? designationReceived;
+    public string? fundccl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("Initializing Transfer component");
+        var paridresponse = await HttpClient.GetAsync("https://localhost:7041/api/PAR/byParID");
+        if (paridresponse.IsSuccessStatusCode)
+        {
+            var parIds = await paridresponse.Content.ReadFromJsonAsync<List<string>>();
+            if (parIds != null)
+            {
+                ParIDList = new List<ParDisplayInfo>();
+                foreach (var parId in parIds)
+                {
+                    var parResponse = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{parId}");
+                    if (parResponse.IsSuccessStatusCode)
+                    {
+                        var parData = await parResponse.Content.ReadFromJsonAsync<PAR>();
+                        if (parData != null)
+                        {
+                            var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{parData.ItemName}");
+                            string? itemDetails = descResponse.IsSuccessStatusCode ? await descResponse.Content.ReadAsStringAsync() : null;
+
+                            ParIDList.Add(new ParDisplayInfo
+                            {
+                                ParID = parId,
+                                ItemName = parData.ItemName,
+                                ParName = parData.ParName,
+                                ItemDetails = itemDetails ?? string.Empty
+                            });
+                        }
+                    }
+                }
+                Logger.LogInformation($"Loaded {ParIDList.Count} PAR IDs");
+            }
+        }
+        else
+        {
+            ParIDList = new List<ParDisplayInfo>();
+            Logger.LogWarning("Failed to fetch PAR IDs: {StatusCode}", paridresponse.StatusCode);
+        }
+
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
+            await LoadParData();
+        }
+    }
+
+    private async Task OnParSelectionChanged(object value)
+    {
+        SelectedPar = value as string;
+        SelectedParInfo = ParIDList?.FirstOrDefault(p => p.ParID == SelectedPar);
+
+        if (!string.IsNullOrEmpty(SelectedPar))
+        {
+            await LoadParData();
+        }
+        else
+        {
+            SelectedParInfo = null;
+            SelectedParData = null;
+            SelectedItemData = null;
+            SelectedCstData = null;
+            _ItemDescription = null;
+            FundCluster = null;
+            FromName = null;
+            ToName = null;
+            TransferType1 = false;
+            TransferType2 = false;
+            TransferType3 = false;
+            TransferType4 = false;
+            TransferType4Details = null;
+            ReasonForTransfer = null;
+            ApprovedBy = null;
+            ReleasedBy = null;
+            ReceivedBy = null;
+            Designation = null;
+            ItemCondition = null;
+            Date = DateOnly.FromDateTime(DateTime.Today);
+            ApprovedDate = DateOnly.FromDateTime(DateTime.Today);
+            ReleasedDate = DateOnly.FromDateTime(DateTime.Today);
+            ReceivedDate = DateOnly.FromDateTime(DateTime.Today);
+            designationRelease = null;
+            designationReceived = null;
+            Logger.LogInformation("Cleared PAR selection");
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadParData()
+    {
+        if (string.IsNullOrEmpty(SelectedPar))
+        {
+            Logger.LogWarning("SelectedPar is null or empty. Cannot fetch PAR data.");
+            return;
+        }
+
+        Logger.LogInformation("Fetching PAR data for {ParID}", SelectedPar);
+        var response = await HttpClient.GetAsync($"https://localhost:7041/api/PAR/byParID/{SelectedPar}");
+        if (response.IsSuccessStatusCode)
+        {
+            SelectedParData = await response.Content.ReadFromJsonAsync<PAR>();
+            if (SelectedParData == null)
+            {
+                Logger.LogWarning("SelectedParData is null after deserialization for {ParID}", SelectedPar);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(SelectedParData.ItemName))
+            {
+                var descResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemDescription/{SelectedParData.ItemName}");
+                if (descResponse.IsSuccessStatusCode)
+                {
+                    var itemDetails = await descResponse.Content.ReadAsStringAsync();
+                    _ItemDescription = $"{SelectedParData.ItemName} - {itemDetails}";
+                }
+                else
+                {
+                    _ItemDescription = SelectedParData.ItemName;
+                }
+
+                var itemResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemByName/{SelectedParData.ItemName}");
+                if (itemResponse.IsSuccessStatusCode)
+                {
+                    SelectedItemData = await itemResponse.Content.ReadFromJsonAsync<Items>();
+                }
+                else
+                {
+                    Logger.LogWarning("Failed to fetch Item data for {ItemName}: {StatusCode}", SelectedParData.ItemName, itemResponse.StatusCode);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(SelectedParData.ParName))
+            {
+                var cstResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Custodian/getCstCode/{SelectedParData.ParName}");
+                if (cstResponse.IsSuccessStatusCode)
+                {
+                    var cstCode = await cstResponse.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrEmpty(cstCode))
+                    {
+                        SelectedCstData = new Custodian { CSTCode = cstCode };
+                    }
+                    else
+                    {
+                        Logger.LogWarning("CSTCode is empty for {ParName}", SelectedParData.ParName);
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning("Failed to fetch Custodian CSTCode for {ParName}: {StatusCode}", SelectedParData.ParName, cstResponse.StatusCode);
+                }
+            }
+        }
+        else
+        {
+            Logger.LogWarning("Failed to fetch PAR data for {ParID}: {StatusCode}", SelectedPar, response.StatusCode);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnSubmit()
+    {
+        if (SelectedParData == null || SelectedCstData == null)
+        {
+            Logger.LogWarning("Required data is missing (PAR or Custodian data).");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(ItemCondition) || string.IsNullOrEmpty(ReasonForTransfer) || string.IsNullOrEmpty(ApprovedBy) ||
+            string.IsNullOrEmpty(ReleasedBy) || string.IsNullOrEmpty(ReceivedBy) || string.IsNullOrEmpty(Designation))
+        {
+            Logger.LogWarning("Required fields (ItemCondition, ReasonForTransfer, ApprovedBy, ReleasedBy, ReceivedBy, Designation) are missing.");
+            return;
+        }
+
+        string transferType = GetTransferType();
+        if (transferType == "None")
+        {
+            Logger.LogWarning("A transfer type must be selected.");
+            return;
+        }
+
+        var transfer = new TransferData
+        {
+            ItemCode = SelectedParData.ItemCode,
+            Description = _ItemDescription ?? string.Empty,
+            CstCode = SelectedCstData.CSTCode,
+            Name = SelectedParData.ParName ?? string.Empty,
+            DateTransferred = Date,
+            Condition = ItemCondition ?? string.Empty,
+            rvName = ReceivedBy ?? string.Empty,
+            TransferType = transferType,
+            apprvdBy = ApprovedBy ?? string.Empty,
+            approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
+            designationOf = Designation ?? string.Empty,
+            designationReceived = Designation ?? string.Empty,
+            designationRelease = Designation ?? string.Empty,
+            from = FromName ?? string.Empty,
+            fundccl = FundCluster ?? string.Empty,
+            reason = ReasonForTransfer ?? string.Empty,
+            receivedBy = ReceivedBy ?? string.Empty,
+            receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
+            releaseBy = ReleasedBy ?? string.Empty,
+            releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
+            to = ToName ?? string.Empty,
+            dateAcquired = SelectedParData.ParDate ?? string.Empty,
+            Amount = SelectedParData.ParQty
+        };
+
+        var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transfer);
+        if (insertResponse.IsSuccessStatusCode)
+        {
+            Logger.LogInformation("Transfer data inserted successfully.");
+
+            var transferexcel = new TransferData
+            {
+                ItemCode = SelectedParData.ItemCode,
+                Description = _ItemDescription ?? string.Empty,
+                CstCode = SelectedCstData.CSTCode,
+                Name = SelectedParData.ParName ?? string.Empty,
+                DateTransferred = Date,
+                Condition = ItemCondition ?? string.Empty,
+                ReceiveName = ReceivedBy ?? string.Empty,
+                rvName = ReceivedBy ?? string.Empty,
+                TransferType = transferType,
+                FundCluster = FundCluster ?? string.Empty,
+                fundccl = FundCluster ?? string.Empty,
+                FromName = FromName ?? string.Empty,
+                from = FromName ?? string.Empty,
+                ToName = ToName ?? string.Empty,
+                to = ToName ?? string.Empty,
+                ReasonForTransfer = ReasonForTransfer ?? string.Empty,
+                reason = ReasonForTransfer ?? string.Empty,
+                ApprovedBy = ApprovedBy ?? string.Empty,
+                apprvdBy = ApprovedBy ?? string.Empty,
+                ReleasedBy = ReleasedBy ?? string.Empty,
+                releaseBy = ReleasedBy ?? string.Empty,
+                receivedBy = ReceivedBy ?? string.Empty,
+                Designation = Designation ?? string.Empty,
+                designationOf = Designation ?? string.Empty,
+                approvedByDate = ApprovedDate.ToString("yyyy-MM-dd"),
+                releaseByDate = ReleasedDate.ToString("yyyy-MM-dd"),
+                receivedByDate = ReceivedDate.ToString("yyyy-MM-dd"),
+                dateAcquired = SelectedParData.ParDate ?? string.Empty,
+                Amount = SelectedParData.ParQty,
+                designationRelease = designationRelease ?? string.Empty,
+                designationReceived = designationReceived ?? string.Empty
+            };
+
+            var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-transfer", transferexcel);
+            if (excelResponse.IsSuccessStatusCode)
+            {
+                var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
+                Logger.LogInformation("PDF generated successfully. File size: {FileSize} bytes", fileBytes.Length);
+                var pdfBase64 = Convert.ToBase64String(fileBytes);
+                Logger.LogInformation("Base64 string length: {Base64Length}", pdfBase64.Length);
+
+                var parameters = new ModalParameters();
+                parameters.Add("PdfBase64", pdfBase64);
+                var options = new ModalOptions
+                {
+                    HideCloseButton = true,
+                    DisableBackgroundCancel = true
+                };
+                Logger.LogInformation("Attempting to show TransferPreview modal");
+                ModalService.Show<TransferPreview>("Preview", parameters, options);
+            }
+            else
+            {
+                var errorContent = await excelResponse.Content.ReadAsStringAsync();
+                Logger.LogError("Failed to generate PDF file: {ErrorContent}", errorContent);
+            }
+        }
+        else
+        {
+            var errorContent = await insertResponse.Content.ReadAsStringAsync();
+            Logger.LogError("Failed to insert transfer data: {ErrorContent}", errorContent);
+        }
+    }
+
+    private void TestModal()
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("Content", "This is a test modal.");
+        ModalService.Show<TransferTableModal>("Test", parameters);
+    }
+
+    private string GetTransferType()
+    {
+        if (TransferType1) return "Donation";
+        if (TransferType2) return "Relocate";
+        if (TransferType3) return "Reassignment";
+        if (TransferType4) return $"{TransferType4Details ?? "No details provided"}";
+        return "None";
+    }
+
+    public void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
     }
 }
