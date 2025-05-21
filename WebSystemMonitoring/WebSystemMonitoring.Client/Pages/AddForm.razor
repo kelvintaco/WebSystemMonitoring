@@ -18,6 +18,90 @@
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script src="https://localhost:7041/static/site.js"></script>
 
+<style>
+    .main-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-sections {
+        display: flex;
+        gap: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .left-col, .right-col {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: white;
+    }
+
+    .bottom-row {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .bottom-row > div {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: white;
+    }
+
+    .button-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    input[type="submit"], button {
+        padding: 8px 20px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin: 20px 0px 0px 0px;
+    }
+
+    input[type="submit"]:hover, button:hover {
+        background-color: #0056b3;
+    }
+
+    input[type="submit"]:disabled, button:disabled {
+        background-color: #cccccc;
+        border-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+
 <PageTitle>PAR Form</PageTitle>
 <RadzenForm id="form">
     <div class="main-row">
@@ -63,9 +147,11 @@
             <RadzenTextBox Value="@value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px;" />
         </div>
     </div>
-    <div style="width: 200px; margin-left: 220px; margin-bottom: 2px;">
+    
+    <div name="itemaddlink" style="margin: 10px 0 20px 0; text-align: center;">
         <span @onclick="ShowAddItemModal" style="color: #007bff; cursor: pointer; text-decoration: underline; font-size: 0.95em;">item does not exist?</span>
     </div>
+
     <div class="form-sections">
         <div class="left-col">
             <RadzenLabel Text="1. Classification" />
@@ -112,9 +198,9 @@
             <RadzenTextBox @bind-Value="ItemPlace" Required="true" Placeholder="Enter where the item will be placed" />
         </div>
     </div>
-    <div class="button-row" style="margin-top: 20px;">
-        <input type="submit" value="Submit" @onclick="SubmitForm" disabled="@IsSubmitting" style="margin-top: 20px;" />
-        <button type="button" @onclick="CancelForm" disabled="@IsSubmitting" style="margin-left: 10px;">Cancel</button>
+    <div class="button-row">
+        <input type="submit" value="Submit" @onclick="SubmitForm" disabled="@IsSubmitting" />
+        <button type="button" @onclick="CancelForm" disabled="@IsSubmitting">Cancel</button>
     </div>
 </RadzenForm>
 

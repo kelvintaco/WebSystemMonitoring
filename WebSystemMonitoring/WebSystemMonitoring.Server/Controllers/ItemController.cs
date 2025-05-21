@@ -50,6 +50,38 @@ namespace WebSystemMonitoring.Server.Controllers
             }
         }
 
+        [HttpPut("updateStock/{description}")]
+        public async Task<IActionResult> UpdateStock(string description)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting to update stock for item with description: {Description}", description);
+
+                // Find the item by description
+                var item = await _context.Items
+                    .FirstOrDefaultAsync(i => i.ItemDescription == description);
+
+                if (item == null)
+                {
+                    _logger.LogWarning("No item found with description: {Description}", description);
+                    return NotFound($"No item found with description: {description}");
+                }
+
+                // Increment the stock by 1
+                item.Stock += 1;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully updated stock for item with description: {Description}. New stock: {Stock}", 
+                    description, item.Stock);
+                return Ok($"Stock updated successfully. New stock: {item.Stock}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating stock for item with description: {Description}", description);
+                return StatusCode(500, "An error occurred while updating the stock");
+            }
+        }
+
         // Keep existing endpoints...
     }
 } 

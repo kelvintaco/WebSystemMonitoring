@@ -10,6 +10,7 @@
 @inject HttpClient HttpClient
 @inject IModalService ModalService
 @inject ILogger<Transfer> Logger
+@inject NavigationManager NavigationManager
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -17,127 +18,221 @@
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script src="/static/site.js"></script>
 
+<style>
+    .main-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-sections {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .left-col, .middle-col, .right-col {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: white;
+    }
+
+    .middle-col {
+        margin: 0 10px;
+    }
+
+    .bottom-row {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .bottom-row > div {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: white;
+    }
+
+    .button-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    input[type="submit"], button {
+        padding: 8px 20px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin: 20px 0px 0px 0px;
+    }
+
+    input[type="submit"]:hover, button:hover {
+        background-color: #0056b3;
+    }
+
+    input[type="submit"]:disabled, button:disabled {
+        background-color: #cccccc;
+        border-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+
 <h1>Transfer Details</h1>
 
 <div class="container mt-4">
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Select ID:</label>
-                    <RadzenDropDownDataGrid @bind-Value="SelectedPar"
-                                            Data="ParIDList"
-                                            TextProperty="List"
-                                            ValueProperty="ParID"
-                                            AllowClear="true"
-                                            AllowFiltering="true"
-                                            Placeholder="Select an ID"
-                                            Class="w-100"
-                                            Change="@OnParSelectionChanged" />
-                </div>
-            </div>
+    <div class="main-row">
+        <div class="form-group">
+            <label class="form-label fw-bold">Select ID:</label>
+            <RadzenDropDownDataGrid @bind-Value="SelectedPar"
+                                    Data="ParIDList"
+                                    TextProperty="List"
+                                    ValueProperty="ParID"
+                                    AllowClear="true"
+                                    AllowFiltering="true"
+                                    Placeholder="Select an ID"
+                                    Class="w-100"
+                                    Change="@OnParSelectionChanged" />
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(SelectedPar))
     {
-        <div class="row mb-2">
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Entity Name:</label>
-                <p>@(SelectedParData?.ParName ?? "N/A")</p>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Fund Cluster:</label>
-                <RadzenTextBox @bind-Value="FundCluster" Placeholder="Enter Fund Cluster" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Date:</label>
-                <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" DateFormat="yyyy-MM-dd" />
-            </div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6">
-                <label class="form-label fw-bold">From Accountable Officer/Agency/Fund Cluster:</label>
-                <RadzenTextBox @bind-Value="FromName" Placeholder="From Accountable Officer/Agency/Fund Cluster" />
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-bold">To Accountable Officer/Agency/Fund Cluster:</label>
-                <RadzenTextBox @bind-Value="ToName" Placeholder="To Accountable Officer/Agency/Fund Cluster" />
-            </div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6">
-                <label class="form-label fw-bold">PTR No.:</label>
-                <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
-            </div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-12">
-                <label class="form-label fw-bold">Transfer Type (only check one):</label>
-                <div class="form-check">
-                    <RadzenCheckBox TValue="bool" Name="transferType1" @bind-Value="TransferType1" /> Donation
+        <div class="form-sections">
+            <div class="left-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Entity Name:</label>
+                    <p>@(SelectedParData?.ParName ?? "N/A")</p>
                 </div>
-                <div class="form-check">
-                    <RadzenCheckBox TValue="bool" Name="transferType2" @bind-Value="TransferType2" /> Relocate
+                <div class="form-group">
+                    <label class="form-label fw-bold">Fund Cluster:</label>
+                    <RadzenTextBox @bind-Value="FundCluster" Placeholder="Enter Fund Cluster" />
                 </div>
-                <div class="form-check">
-                    <RadzenCheckBox TValue="bool" Name="transferType3" @bind-Value="TransferType3" /> Reassignment
+                <div class="form-group">
+                    <label class="form-label fw-bold">Date:</label>
+                    <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" DateFormat="yyyy-MM-dd" />
                 </div>
-                <div class="form-check d-flex align-items-center">
-                    <RadzenCheckBox TValue="bool" Name="transferType4" @bind-Value="TransferType4" /> Others (specify):
-                    <RadzenTextBox @bind-Value="TransferType4Details" Placeholder="Specify if Others" class="ms-2" />
+            </div>
+            <div class="right-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">From Accountable Officer/Agency/Fund Cluster:</label>
+                    <RadzenTextBox @bind-Value="FromName" Placeholder="From Accountable Officer/Agency/Fund Cluster" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">To Accountable Officer/Agency/Fund Cluster:</label>
+                    <RadzenTextBox @bind-Value="ToName" Placeholder="To Accountable Officer/Agency/Fund Cluster" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">PTR No.:</label>
+                    <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
                 </div>
             </div>
         </div>
-        <div class="row mb-2">
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Date Acquired:</label>
-                <p>@(SelectedParData?.ParDate ?? "N/A")</p>
+
+        <div class="form-sections">
+            <div class="left-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Transfer Type (only check one):</label>
+                    <div class="form-check">
+                        <RadzenCheckBox TValue="bool" Name="transferType1" @bind-Value="TransferType1" /> Donation
+                    </div>
+                    <div class="form-check">
+                        <RadzenCheckBox TValue="bool" Name="transferType2" @bind-Value="TransferType2" /> Relocate
+                    </div>
+                    <div class="form-check">
+                        <RadzenCheckBox TValue="bool" Name="transferType3" @bind-Value="TransferType3" /> Reassignment
+                    </div>
+                    <div class="form-check d-flex align-items-center">
+                        <RadzenCheckBox TValue="bool" Name="transferType4" @bind-Value="TransferType4" /> Others (specify):
+                        <RadzenTextBox @bind-Value="TransferType4Details" Placeholder="Specify if Others" class="ms-2" />
+                    </div>
+                </div>
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Property No.:</label>
-                <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Description:</label>
-                <p>@(_ItemDescription ?? "N/A")</p>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Condition of PPE:</label>
-                <RadzenTextBox @bind-Value="ItemCondition" Placeholder="Condition of PPE" />
+            <div class="right-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Date Acquired:</label>
+                    <p>@(SelectedParData?.ParDate ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Property No.:</label>
+                    <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Description:</label>
+                    <p>@(_ItemDescription ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Condition of PPE:</label>
+                    <RadzenTextBox @bind-Value="ItemCondition" Placeholder="Condition of PPE" />
+                </div>
             </div>
         </div>
-        <div class="row mb-2">
-            <div class="col-12">
+
+        <div class="bottom-row">
+            <div>
                 <label class="form-label fw-bold">Reason for Transfer:</label>
                 <RadzenTextArea @bind-Value="ReasonForTransfer" Placeholder="Reason for Transfer" />
             </div>
         </div>
-        <div class="row mb-2">
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Approved By:</label>
-                <RadzenTextBox @bind-Value="ApprovedBy" Placeholder="Printed Name" />
-                <RadzenTextBox @bind-Value="Designation" Placeholder="Designation" />
-                <RadzenDatePicker TValue="DateOnly" @bind-Value="ApprovedDate" DateFormat="yyyy-MM-dd" />
+
+        <div class="form-sections">
+            <div class="left-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Approved By:</label>
+                    <RadzenTextBox @bind-Value="ApprovedBy" Placeholder="Printed Name" />
+                    <RadzenTextBox @bind-Value="Designation" Placeholder="Designation" />
+                    <RadzenDatePicker TValue="DateOnly" @bind-Value="ApprovedDate" DateFormat="yyyy-MM-dd" />
+                </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Released/Issued By:</label>
-                <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Printed Name" />
-                <RadzenTextBox @bind-Value="designationRelease" Placeholder="Designation" />
-                <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" DateFormat="yyyy-MM-dd" />
+            <div class="middle-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Released/Issued By:</label>
+                    <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Printed Name" />
+                    <RadzenTextBox @bind-Value="designationRelease" Placeholder="Designation" />
+                    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" DateFormat="yyyy-MM-dd" />
+                </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Received By:</label>
-                <RadzenTextBox @bind-Value="ReceivedBy" Placeholder="Printed Name" />
-                <RadzenTextBox @bind-Value="designationReceived" Placeholder="Designation" />
-                <RadzenDatePicker TValue="DateOnly" @bind-Value="ReceivedDate" DateFormat="yyyy-MM-dd" />
+            <div class="right-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Received By:</label>
+                    <RadzenTextBox @bind-Value="ReceivedBy" Placeholder="Printed Name" />
+                    <RadzenTextBox @bind-Value="designationReceived" Placeholder="Designation" />
+                    <RadzenDatePicker TValue="DateOnly" @bind-Value="ReceivedDate" DateFormat="yyyy-MM-dd" />
+                </div>
             </div>
         </div>
-        <div class="row mb-2">
-            <div class="col-12">
-                <RadzenButton Text="Submit" Click="OnSubmit" ButtonStyle="ButtonStyle.Primary" />
-               @*  <RadzenButton Text="Test Modal" Click="TestModal" ButtonStyle="ButtonStyle.Secondary" /> *@
-            </div>
+
+        <div class="button-row">
+            <button type="button" @onclick="OnSubmit">Submit</button>
+            <button type="button" @onclick="CancelForm">Cancel</button>
         </div>
     }
 </div>
@@ -548,6 +643,12 @@
         if (TransferType3) return "Reassignment";
         if (TransferType4) return $"{TransferType4Details ?? "No details provided"}";
         return "None";
+    }
+
+    private async Task CancelForm()
+    {
+        Logger.LogInformation("CancelForm triggered");
+        NavigationManager.NavigateTo("/transfer", forceLoad: true);
     }
 
     public void Dispose()

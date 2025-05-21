@@ -10,6 +10,7 @@
 @inject HttpClient HttpClient
 @inject IModalService ModalService
 @inject ILogger<ArchivedTransactions> Logger
+@inject NavigationManager NavigationManager
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
@@ -17,66 +18,150 @@
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script src="/static/site.js"></script>
 
+<style>
+    .main-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    }
+
+    .form-group {
+    margin-bottom: 15px;
+    }
+
+    .form-sections {
+    display: flex;
+    gap: 30px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    }
+
+    .left-col, .right-col {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    }
+
+    .bottom-row {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    }
+
+    .bottom-row > div {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    }
+
+    .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    }
+
+    input[type="submit"], button {
+    padding: 8px 20px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 20px 0px 0px 0px;
+    }
+
+    input[type="submit"]:hover, button:hover {
+    background-color: #0056b3;
+    }
+
+    input[type="submit"]:disabled, button:disabled {
+    background-color: #cccccc;
+    border-color: #cccccc;
+    cursor: not-allowed;
+    }
+</style>
+
 <h1>Surrender Details</h1>
 
 <div class="container mt-4">
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Select ID:</label>
-                    <RadzenDropDownDataGrid @bind-Value="SelectedPar"
-                                            Data="ParIDList"
-                                            TextProperty="List"
-                                            ValueProperty="ParID"
-                                            AllowClear="true"
-                                            AllowFiltering="true"
-                                            Placeholder="Select an ID"
-                                            Class="w-100"
-                                            Change="@OnParSelectionChanged" />
-                </div>
-            </div>
+    <div class="main-row">
+        <div class="form-group">
+            <label class="form-label fw-bold">Select ID:</label>
+            <RadzenDropDownDataGrid @bind-Value="SelectedPar"
+            Data="ParIDList"
+            TextProperty="List"
+            ValueProperty="ParID"
+            AllowClear="true"
+            AllowFiltering="true"
+            Placeholder="Select an ID"
+            Class="w-100"
+            Change="@OnParSelectionChanged" />
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(SelectedPar))
     {
-        <div class="row mb-3">
-            <div class="col">
-                <label class="form-label fw-bold">Quantity:</label>
-                <p>@(SelectedItemPARData?.ParQty.ToString() ?? "N/A")</p>
+        <div class="form-sections">
+            <div class="left-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Quantity:</label>
+                    <p>@(SelectedItemPARData?.ParQty.ToString() ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Unit (Item Code):</label>
+                    <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Description:</label>
+                    <p>@(_ItemDescription ?? "N/A")</p>
+                </div>
             </div>
-            <div class="col">
-                <label class="form-label fw-bold">Unit (Item Code):</label>
-                <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
-            </div>
-            <div class="col">
-                <label class="form-label fw-bold">Description:</label>
-                <p>@(_ItemDescription ?? "N/A")</p>
-            </div>
-            <div class="col">
-                <label class="form-label fw-bold">Date Acquired:</label>
-                <p>@(SelectedItemPARData?.ParDate ?? "N/A")</p>
-            </div>
-            <div class="col">
-                <label class="form-label fw-bold">Property No.:</label>
-                <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
-            </div>
-            <div class="col">
-                <label class="form-label fw-bold">Unit Value:</label>
-                <p>₱@(SelectedItemPARData?.value.ToString("N2") ?? "N/A")</p>
+            <div class="right-col">
+                <div class="form-group">
+                    <label class="form-label fw-bold">Date Acquired:</label>
+                    <p>@(SelectedItemPARData?.ParDate ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Property No.:</label>
+                    <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Unit Value:</label>
+                    <p>₱@(SelectedItemPARData?.value.ToString("N2") ?? "N/A")</p>
+                </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col">
+        <div class="bottom-row">
+            <div>
                 <label class="form-label fw-bold">Surrendered By:</label>
                 <p>@(SelectedItemPARData?.ParName ?? "N/A")</p>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
+        <div class="form-sections">
+            <div class="left-col">
                 <h5>1. Classification</h5>
                 <div><RadzenCheckBox @bind-Value="IsClassification1" /> Office Equipment</div>
                 <div><RadzenCheckBox @bind-Value="IsClassification2" /> Furniture & Fixtures</div>
@@ -84,24 +169,20 @@
                 <div><RadzenCheckBox @bind-Value="IsClassification4" /> Other Machinery & Equipment</div>
                 <div><RadzenCheckBox @bind-Value="IsClassification5" /> Communication Equipment</div>
             </div>
-            <div class="col-md-6">
+            <div class="right-col">
                 <h5>2. Distribution of Copies</h5>
                 <div><RadzenCheckBox @bind-Value="CopiesEndUser" /> End User</div>
                 <div><RadzenCheckBox @bind-Value="CopiesGSO" /> GSO</div>
+                <div class="form-group mt-3">
+                    <label class="form-label fw-bold">Condition:</label>
+                    <RadzenDropDown @bind-Value="Condition" Data="conditions" />
+                </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Condition:</label>
-                <RadzenDropDown @bind-Value="Condition" Data="conditions" />
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <RadzenButton Text="Submit" Click="SaveToExcel" ButtonStyle="ButtonStyle.Primary" />
-            </div>
+        <div class="button-row">
+            <button type="button" @onclick="SaveToExcel">Submit</button>
+            <button type="button" @onclick="CancelForm">Cancel</button>
         </div>
     }
 </div>
@@ -109,11 +190,13 @@
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
+
     private CancellationTokenSource cts = new CancellationTokenSource();
     private List<ParDisplayInfo>? ParIDList;
     private string? SelectedPar;
     private ParDisplayInfo? SelectedParInfo;
     private string? _ItemDescription;
+    private string? _OnlyDesc;
 
     private readonly List<string> conditions = new List<string> { "Servicable", "Nonservicable" };
     private List<string>? ItemList;
@@ -260,7 +343,8 @@
                     {
                         var itemDetails = await descResponse.Content.ReadAsStringAsync();
                         _ItemDescription = $"{SelectedItemPARData.ItemName} - {itemDetails}";
-                    }
+						_OnlyDesc = itemDetails;
+					}
                     else
                     {
                         _ItemDescription = SelectedItemPARData.ItemName;
@@ -324,6 +408,16 @@
         if (CopiesEndUser) copiesList.Add("End User");
         if (CopiesGSO) copiesList.Add("GSO");
         var copies = string.Join(", ", copiesList);
+
+        if (!string.IsNullOrEmpty(_OnlyDesc))
+        {
+            var updateStockResponse = await HttpClient.PutAsync($"https://localhost:7041/api/Item/updateStockwhenSurrendered/{Uri.EscapeDataString(_OnlyDesc)}", null);
+            if (!updateStockResponse.IsSuccessStatusCode)
+            {
+                Logger.LogWarning("Failed to update item stock: {StatusCode}", updateStockResponse.StatusCode);
+                return;
+            }
+        }
 
         if (Condition == "Nonservicable")
         {
@@ -431,6 +525,12 @@
         {
             Logger.LogInformation("Archive inserted successfully.");
         }
+    }
+
+    private async Task CancelForm()
+    {
+        Logger.LogInformation("CancelForm triggered");
+        NavigationManager.NavigateTo("/surrender", forceLoad: true);
     }
 
     public void Dispose()
