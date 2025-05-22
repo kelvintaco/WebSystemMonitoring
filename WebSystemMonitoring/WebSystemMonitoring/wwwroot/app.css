@@ -9,7 +9,6 @@
 .fa {
     font-family: var(--fa-style-family,"Font Awesome 6 Free");
     font-weight: var(--fa-style,900);
-    border: 1px solid #ccc;
     display: inline-block;
 }
 
@@ -17,19 +16,16 @@
     font-variant: normal;
     line-height: 1;
     text-rendering: auto;
-    border: 1px solid #ccc;
     display: inline-block;
 }
 
 .fa-brands:before, .fa-regular:before, .fa-solid:before, .fa:before, .fab:before, .far:before, .fas:before {
     content: var(--fa);
-    border: 1px solid #ccc;
     display: inline-block;
 }
 
 .fa-classic, .fa-regular, .fa-solid, .far, .fas {
     font-family: "Font Awesome 6 Free";
-    border: 1px solid #ccc;
     display: inline-block;
 }
 
@@ -41,7 +37,6 @@
 
 .fa-1x {
     font-size: 1em;
-    border: 1px solid #ccc;
     display: inline-block;
 }
 
@@ -9222,7 +9217,6 @@ html {
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
     width: 100%;
 }
 
@@ -9230,7 +9224,6 @@ html {
     display: flex;
     gap: 40px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
     width: 100%;
 }
 
