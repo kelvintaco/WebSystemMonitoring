@@ -73,11 +73,15 @@ main {
     }
 
     .sidebar {
-        width: 250px;
+        width: 72px;
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.3s ease-in-out;
     }
+/*    .sidebar.collapsed {
+        width: 56px;
+    }*/
 
     main.full-width {
         margin-left: 0;

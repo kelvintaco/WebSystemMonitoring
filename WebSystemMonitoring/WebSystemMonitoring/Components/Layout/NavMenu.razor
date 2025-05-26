@@ -1,9 +1,11 @@
-﻿<div>
+﻿@inject NavigationManager NavigationManager
+
+<div class="nav-menu">
     <!-- Top navigation bar -->
     <div class="px-4 py-3 flex items-center justify-between">
         <a href="" class="flex items-center space-x-3 text-white">
             <i class="fas fa-desktop text-2xl text-blue-100"></i>
-            <span class="text-xl font-semibold tracking-wide">WSM</span>
+            <span class="text-xl font-semibold tracking-wide @(IsHomePage() ? "" : "hidden")">SMS</span>
         </a>
 
         <!-- Mobile menu button -->
@@ -17,36 +19,42 @@
         <nav>
             <div class="nav-item">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <i class="fas fa-home text-blue-100 mr-3"></i> Home
+                    <i class="fas fa-home text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Home</span>
                 </NavLink>
             </div>
 
             <div class="nav-item">
                 <NavLink class="nav-link" href="MasterList">
-                    <i class="fas fa-list-ul text-blue-100 mr-3"></i> Master List
+                    <i class="fas fa-list-ul text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Master List</span>
                 </NavLink>
             </div>
 
             <div class="nav-item">
                 <NavLink class="nav-link" href="addform">
-                    <i class="fas fa-box text-blue-100 mr-3"></i> PAR
+                    <i class="fas fa-box text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">PAR</span>
                 </NavLink>
             </div>
 
             <div class="nav-item">
                 <NavLink class="nav-link" href="ics">
-                    <i class="fas fa-print text-blue-100 mr-3"></i> ICS
+                    <i class="fas fa-print text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">ICS</span>
                 </NavLink>
             </div>
 
             <div class="nav-item">
                 <NavLink class="nav-link" href="surrender">
-                    <i class="fas fa-archive fa- text-blue-100 mr-3"></i> Surrender
+                    <i class="fas fa-archive fa- text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Surrender</span>
                 </NavLink>
             </div>
             <div class="nav-item">
                 <NavLink class="nav-link" href="transfer">
-                    <i class="fas fa-exchange-alt text-blue-100 mr-3"></i> Transfer
+                    <i class="fas fa-exchange-alt text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Transfer</span>
                 </NavLink>
             </div>
         </nav>
@@ -54,6 +62,13 @@
 </div>
 
 <style>
+    .nav-menu {
+        background: linear-gradient(180deg, rgba(18, 42, 255, 0.85) 0%, rgba(134, 136, 243, 0.85) 100%);
+        height: 100vh;
+        transition: all 0.3s ease-in-out;
+        width: 72px;
+    }
+
     .nav-item {
         padding: 0.25rem 1rem;
     }
@@ -68,28 +83,40 @@
         font-weight: 500;
     }
 
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateX(5px);
-        }
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(5px);
+    }
 
-        .nav-link.active {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: white;
-            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
-        }
+    .nav-link.active {
+        background-color: rgba(59, 130, 246, 0.2);
+        color: white;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+    }
 
-        .nav-link i {
-            transition: transform 0.2s ease-in-out;
-        }
+    .nav-link i {
+        transition: transform 0.2s ease-in-out;
+    }
 
-        .nav-link:hover i {
-            transform: scale(1.2);
-        }
+    .nav-link:hover i {
+        transform: scale(1.2);
+    }
+
+    .nav-scrollable {
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
 </style>
 
 @code {
+    private bool IsHomePage()
+    {
+        var uri = NavigationManager.Uri;
+        return uri.EndsWith("/", StringComparison.OrdinalIgnoreCase) ||
+               uri.EndsWith("/index", StringComparison.OrdinalIgnoreCase);
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
