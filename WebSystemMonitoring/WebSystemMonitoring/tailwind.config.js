@@ -6,6 +6,7 @@ module.exports = {
         './Shared/**/*.{razor,html,cshtml}',
         './wwwroot/index.html',
     ],
+    darkMode: 'class',
     theme: {
         extend: {
             animation: {
@@ -23,9 +24,8 @@ module.exports = {
                     '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 float: {
-                    '0%': { transform: 'translateY(0px)' },
+                    '0%, 100%': { transform: 'translateY(0)' },
                     '50%': { transform: 'translateY(-10px)' },
-                    '100%': { transform: 'translateY(0px)' },
                 },
             },
             colors: {

@@ -1,4 +1,8 @@
-﻿@inject NavigationManager NavigationManager
+﻿@using Blazored.Modal
+@using Blazored.Modal.Services
+@inject IModalService ModalService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <div class="nav-menu">
     <!-- Top navigation bar -->
@@ -57,6 +61,12 @@
                     <span class="@(IsHomePage() ? "" : "hidden")">Transfer</span>
                 </NavLink>
             </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="settings">
+                    <i class="fas fa-cog text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Settings</span>
+                </NavLink>
+            </div>
         </nav>
     </div>
 </div>
@@ -67,6 +77,7 @@
         height: 100vh;
         transition: all 0.3s ease-in-out;
         width: 72px;
+        position: relative;
     }
 
     .nav-item {
@@ -110,6 +121,13 @@
 </style>
 
 @code {
+    private bool showSettings = false;
+
+    private void ToggleSettings()
+    {
+        showSettings = !showSettings;
+    }
+
     private bool IsHomePage()
     {
         var uri = NavigationManager.Uri;
