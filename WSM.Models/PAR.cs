@@ -18,7 +18,7 @@ namespace APIFinal.Models
         public string FundCls { get; set; }
         public string SourceCopies { get; set; }
         public int refNo { get; set; }
-        public float value { get; set; }
+        public float _value { get; set; }
         public int ParQty { get; set; }
         public string Unit { get; set; }
     }
