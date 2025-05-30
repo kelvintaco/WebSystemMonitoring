@@ -6020,7 +6020,9 @@
 
 :host, :root {
     --fa-style-family-brands: "Font Awesome 6 Brands";
-    --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands"
+    --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
+    --background: #ffffff;
+    --text-color: #000000;
 }
 
 @font-face {
@@ -8016,7 +8018,9 @@
 }
 
 :host, :root {
-    --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free"
+    --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free";
+    --background: #ffffff;
+    --text-color: #000000;
 }
 
 @font-face {
@@ -8033,7 +8037,9 @@
 
 :host, :root {
     --fa-style-family-classic: "Font Awesome 6 Free";
-    --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free"
+    --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free";
+    --background: #ffffff;
+    --text-color: #000000;
 }
 
 @font-face {
@@ -8271,6 +8277,8 @@ body {
     line-height: inherit;
     /* 2 */
     overflow-x: hidden;
+    background-color: var(--background);
+    color: var(--text-color);
 }
 
 /*
@@ -9234,4 +9242,9 @@ html {
     flex: 1;
     border: 1px solid #ccc;
     min-width: 0;
+}
+
+.dark {
+    --background: #2d2d2d;
+    --text-color: #ffffff;
 }

@@ -134,7 +134,7 @@
         try
         {
             await ModalInstance.CloseAsync();
-            NavigationManager.NavigateTo("/masterlist");
+            NavigationManager.NavigateTo("/ics");
         }
         catch (Exception ex)
         {
@@ -155,7 +155,7 @@
 
         if (!result.Cancelled)
         {
-            NavigationManager.NavigateTo("/masterlist", forceLoad: true);
+            NavigationManager.NavigateTo("/ics", forceLoad: true);
         }
     }
 

@@ -16,6 +16,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<DialogService>();
+builder.Services.AddScoped<Radzen.ThemeService>();
 builder.Services.AddMatBlazor();
 builder.Services.AddBlazoredModal();
 

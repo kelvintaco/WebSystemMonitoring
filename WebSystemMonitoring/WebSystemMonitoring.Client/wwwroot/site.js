@@ -37,3 +37,4 @@ window.printPdf = (base64Data) => {
         URL.revokeObjectURL(url);
     }, 1000);
 };
+

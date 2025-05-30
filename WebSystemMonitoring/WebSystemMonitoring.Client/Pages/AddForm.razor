@@ -146,9 +146,9 @@
             <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
         </div>
         <div class="form-group">
-            <RadzenLabel Text="Unit Value" />
-            @* <RadzenTextBox Value="@_value.ToString("C", CultureInfo.CurrentCulture)" ReadOnly="true" Style="width:100px;" /> *@
+            <RadzenLabel Text="Total Value" />
             <RadzenTextBox Value="@_value.ToString("C", new CultureInfo("en-PH"))" ReadOnly="true" Style="width:100px;" />
+            <div style="font-size: 0.8em; color: #666; margin-top: 2px;">min 50000</div>
         </div>
     </div>
     
@@ -227,11 +227,21 @@
     private string? SelectedItem;
     private string? CSTName;
     private string? DPRName;
-    private int ParQty;
+    private int parQty;
+    private int ParQty
+    {
+        get => parQty;
+        set
+        {
+            parQty = value;
+            UpdateTotalValue(); 
+        }
+    }
     private DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
     private int referenceNo;
     private int ItemCode;
-    private float _value;
+    private double _value; 
+    private double _unitPrice; 
     private string? Unit;
     private bool IsClassification1;
     private bool IsClassification2;
@@ -336,10 +346,12 @@
             var valueResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemInfo.ItemName}");
             if (valueResponse.IsSuccessStatusCode)
             {
-                _value = await valueResponse.Content.ReadFromJsonAsync<float>();
+                _unitPrice = await valueResponse.Content.ReadFromJsonAsync<float>();
+                _value = ParQty * _unitPrice; 
             }
             else
             {
+                _unitPrice = 0;
                 _value = 0;
                 Logger.LogWarning("Failed to fetch item value for {ItemName}", SelectedItem);
             }
@@ -359,9 +371,16 @@
         ItemDetails = null;
         ItemCode = 0;
         _value = 0;
+        _unitPrice = 0;
         currentStock = 0;
         ParQty = 0;
         Unit = null;
+        StateHasChanged();
+    }
+
+    private void UpdateTotalValue()
+    {
+        _value = ParQty * _unitPrice; 
         StateHasChanged();
     }
 
@@ -389,6 +408,13 @@
                 !(Copies1 || Copies2 || Copies3 || Copies4))
             {
                 Logger.LogWarning("Form submission failed due to missing or invalid fields.");
+                await ShowValidationErrorModal();
+                return;
+            }
+
+            if (_value < 50000)
+            {
+                Logger.LogWarning("Total value must be at least 50,000. Current value: {Value}", _value);
                 await ShowValidationErrorModal();
                 return;
             }
@@ -463,7 +489,7 @@
                     SourceCopies = sourceCopies,
                     refNo = referenceNo,
                     value = _value,
-                    ParQty = 1,
+                    ParQty = ParQty,
                     Unit = Unit,
                     ItemDesc = ItemDetails
                 };
@@ -501,7 +527,7 @@
                         IsClassification4 = IsClassification4,
                         IsClassification5 = IsClassification5,
                         FundType = funds.FirstOrDefault() ?? "None",
-                        _value = formData.value,
+                        _value = _value,
                         head = formData.DprHeadName,
                         Copies1 = Copies1,
                         Copies2 = Copies2,
@@ -657,7 +683,7 @@
             HideCloseButton = true,
             DisableBackgroundCancel = true
         };
-        var result = await ModalService.Show<AddItem>("Add New Item", options).Result;
+        var result = await ModalService.Show<AddItemPAR>("Add New Item", options).Result;
         if (!result.Cancelled)
         {
             await RefreshItemList();

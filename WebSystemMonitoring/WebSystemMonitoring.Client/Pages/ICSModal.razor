@@ -129,8 +129,9 @@
             <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
         </div>
         <div class="form-group">
-            <RadzenLabel Text="Unit Value" />
+            <RadzenLabel Text="Total Value" />
             <RadzenTextBox Value="@value.ToString("C", new CultureInfo("en-PH"))" ReadOnly="true" Style="width:100px;" />
+            <div style="font-size: 0.8em; color: #666; margin-top: 2px;">max 49999</div>
         </div>
     </div>
 
@@ -173,10 +174,19 @@
     private string? SelectedItem;
     private string? Name;
     private string? Position;
-    private int Qty;
+    private int qty;
+    private int Qty
+    {
+        get => qty;
+        set
+        {
+            qty = value;
+            UpdateTotalValue(); // Recalculate total value when Qty changes
+        }
+    }
     private DateOnly Date = DateOnly.FromDateTime(DateTime.Today);
     private int ItemCode;
-    private float value;
+    private double value;
     private string? Unit;
     private string? ItemDetails;
     private string? ItemPlace;
@@ -294,6 +304,7 @@
             if (valueResponse.IsSuccessStatusCode)
             {
                 _Price = await valueResponse.Content.ReadFromJsonAsync<float>();
+                value = Qty * _Price;
             }
             else
             {
@@ -301,7 +312,7 @@
                 Logger.LogWarning("Failed to fetch item value for {ItemName}", SelectedItem);
             }
 
-            var liferesponse = await HttpClient.GetAsync($"https://localhost:7041/api/Items/getLifetimeByName/{SelectedItem}");
+            var liferesponse = await HttpClient.GetAsync($"https://localhost:7041/api/Items/getLifetimeByName/{selectedItemInfo.ItemName}");
             if (liferesponse.IsSuccessStatusCode)
             {
                 _Life = await liferesponse.Content.ReadFromJsonAsync<int>();
@@ -343,7 +354,11 @@
         SelectedCstData = null;
         StateHasChanged();
     }
-
+    private void UpdateTotalValue()
+    {
+        value = Qty * _Price; // Recalculate total value as Qty * _Price
+        StateHasChanged(); // Update the UI to reflect the new total value
+    }
     private async Task GenerateExcel()
     {
         if (_isGenerating)
@@ -359,6 +374,15 @@
             string.IsNullOrEmpty(Unit) || Qty <= 0 || Date == default || string.IsNullOrEmpty(ItemPlace))
         {
             Logger.LogWarning("Form submission failed due to missing or invalid fields.");
+            await ShowValidationErrorModal();
+            _isGenerating = false;
+            return;
+        }
+
+        // Check if total value exceeds 49,999
+        if (value > 49999)
+        {
+            Logger.LogWarning("Total value exceeds 49,999. Current value: {Value}", value);
             await ShowValidationErrorModal();
             _isGenerating = false;
             return;
@@ -387,51 +411,60 @@
             return;
         }
 
-        var icsData = new ICSData
-        {
-            ItemCode = ItemCode,
-            Description = $"{SelectedItem} - {ItemDetails}",
-            CSTCode = cstCode,
-            ICSName = Name,
-            ICSPrice = value,
-            Life = _Life,
-            Qty = Qty,
-            IcsDate = Date,
-            Position = Position,
-            Unit = Unit,
-            ItemPlace = ItemPlace,
-            FundCluster = "GF",
-            ICSSDate = Date,
-            IcsDateReceived = Date
-        };
+        string? lastICSID = null;
+        string? pdfBase64 = null;
 
-        var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
-        if (!icsResponse.IsSuccessStatusCode)
+        for (int i = 0; i < Qty; i++)
         {
-            Logger.LogError("Failed to save ICS data. Status: {StatusCode}, Reason: {ReasonPhrase}", icsResponse.StatusCode, icsResponse.ReasonPhrase);
-            _isGenerating = false;
-            return;
-        }
-
-        var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-ics", icsData);
-        if (excelResponse.IsSuccessStatusCode)
-        {
-            var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
-            var pdfBase64 = Convert.ToBase64String(fileBytes);
-
-            var parameters = new ModalParameters();
-            parameters.Add("PdfBase64", pdfBase64);
-            var options = new ModalOptions
+            var icsData = new ICSData
             {
-                HideCloseButton = true,
-                DisableBackgroundCancel = true
+                ItemCode = ItemCode,
+                Description = $"{SelectedItem} - {ItemDetails}",
+                CSTCode = cstCode,
+                ICSName = Name,
+                ICSPrice = value,
+                Life = _Life,
+                Qty = Qty,
+                IcsDate = Date,
+                Position = Position,
+                Unit = Unit,
+                ItemPlace = ItemPlace,
+                FundCluster = "GF",
+                ICSSDate = Date,
+                IcsDateReceived = Date
             };
-            ModalService.Show<ICSPreview>("Preview", parameters, options);
-        }
-        else
-        {
-            var errorContent = await excelResponse.Content.ReadAsStringAsync();
-            Logger.LogError("Failed to generate ICS PDF. Status: {StatusCode}, Reason: {ReasonPhrase}, Content: {Content}", excelResponse.StatusCode, excelResponse.ReasonPhrase, errorContent);
+
+            var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
+            if (!icsResponse.IsSuccessStatusCode)
+            {
+                Logger.LogError("Failed to save ICS data. Status: {StatusCode}, Reason: {ReasonPhrase}", icsResponse.StatusCode, icsResponse.ReasonPhrase);
+                _isGenerating = false;
+                return;
+            }
+
+            if (i == Qty - 1)
+            {
+                var excelResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/excel/generate-ics", icsData);
+                if (excelResponse.IsSuccessStatusCode)
+                {
+                    var fileBytes = await excelResponse.Content.ReadAsByteArrayAsync();
+                    pdfBase64 = Convert.ToBase64String(fileBytes);
+
+                    var parameters = new ModalParameters();
+                    parameters.Add("PdfBase64", pdfBase64);
+                    var options = new ModalOptions
+                    {
+                        HideCloseButton = true,
+                        DisableBackgroundCancel = true
+                    };
+                    ModalService.Show<ICSPreview>("Preview", parameters, options);
+                }
+                else
+                {
+                    var errorContent = await excelResponse.Content.ReadAsStringAsync();
+                    Logger.LogError("Failed to generate ICS PDF. Status: {StatusCode}, Reason: {ReasonPhrase}, Content: {Content}", excelResponse.StatusCode, excelResponse.ReasonPhrase, errorContent);
+                }
+            }
         }
 
         _isGenerating = false;

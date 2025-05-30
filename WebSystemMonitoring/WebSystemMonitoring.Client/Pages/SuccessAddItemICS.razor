@@ -1,0 +1,20 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+
+@inject NavigationManager NavigationManager
+
+<div class="text-center p-4">
+    <h4 class="text-success mb-4">Item Added Successfully!</h4>
+    <p>The item has been added to the system.</p>
+    <button class="btn btn-primary mt-3" @onclick="CloseModal">OK</button>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; }
+
+    private void CloseModal()
+    {
+        BlazoredModal.CloseAsync(ModalResult.Ok(true));
+        NavigationManager.NavigateTo("/ics", forceLoad: true);
+    }
+} 
