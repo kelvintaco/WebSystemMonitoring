@@ -161,7 +161,7 @@
         <div class="form-sections">
             <div class="left-col">
                 <div class="form-group">
-                    <label class="form-label fw-bold">Transfer Type (only check one):</label>
+                    <label class="form-label fw-bold">Transfer Type:</label>
                     <div class="form-check">
                         <RadzenCheckBox TValue="bool" Name="transferType1" @bind-Value="TransferType1" /> Donation
                     </div>
@@ -184,7 +184,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label fw-bold">Property No.:</label>
-                    <p>@(SelectedParData?.ItemCode.ToString() ?? "N/A")</p>
+                    <RadzenTextBox @bind-Value="PropertyNumberT" Placeholder="Enter property number" />
                 </div>
                 <div class="form-group">
                     <label class="form-label fw-bold">Description:</label>
@@ -215,7 +215,7 @@
             </div>
             <div class="middle-col">
                 <div class="form-group">
-                    <label class="form-label fw-bold">Released/Issued By:</label>
+                    <label class="form-label fw-bold">Origin:</label>
                     <RadzenTextBox @bind-Value="ReleasedBy" Placeholder="Printed Name" />
                     <RadzenTextBox @bind-Value="designationRelease" Placeholder="Designation" />
                     <RadzenDatePicker TValue="DateOnly" @bind-Value="ReleasedDate" DateFormat="yyyy-MM-dd" />
@@ -278,6 +278,7 @@
         public int PtrId { get; set; }
         public int ItemCode { get; set; }
         public string Description { get; set; }
+        public string PropertyNumberT { get; set; }
         public string CstCode { get; set; }
         public string Name { get; set; }
         public DateOnly DateTransferred { get; set; }
@@ -350,6 +351,7 @@
     public string? designationRelease;
     public string? designationReceived;
     public string? fundccl;
+    private string? PropertyNumberT;
 
     protected override async Task OnInitializedAsync()
     {
@@ -434,6 +436,7 @@
             ReceivedDate = DateOnly.FromDateTime(DateTime.Today);
             designationRelease = null;
             designationReceived = null;
+            PropertyNumberT = null;
             Logger.LogInformation("Cleared PAR selection");
         }
         StateHasChanged();
@@ -515,13 +518,25 @@
         if (SelectedParData == null || SelectedCstData == null)
         {
             Logger.LogWarning("Required data is missing (PAR or Custodian data).");
+            await ShowValidationErrorModal();
             return;
         }
 
         if (string.IsNullOrEmpty(ItemCondition) || string.IsNullOrEmpty(ReasonForTransfer) || string.IsNullOrEmpty(ApprovedBy) ||
-            string.IsNullOrEmpty(ReleasedBy) || string.IsNullOrEmpty(ReceivedBy) || string.IsNullOrEmpty(Designation))
+            string.IsNullOrEmpty(ReleasedBy) || string.IsNullOrEmpty(ReceivedBy) || string.IsNullOrEmpty(Designation) ||
+            string.IsNullOrEmpty(PropertyNumberT) || string.IsNullOrEmpty(FundCluster) || string.IsNullOrEmpty(FromName) ||
+            string.IsNullOrEmpty(ToName) || Date == default || ApprovedDate == default || ReleasedDate == default || 
+            ReceivedDate == default || !(TransferType1 || TransferType2 || TransferType3 || TransferType4))
         {
-            Logger.LogWarning("Required fields (ItemCondition, ReasonForTransfer, ApprovedBy, ReleasedBy, ReceivedBy, Designation) are missing.");
+            Logger.LogWarning("Form submission failed due to missing or invalid fields.");
+            await ShowValidationErrorModal();
+            return;
+        }
+
+        if (TransferType4 && string.IsNullOrEmpty(TransferType4Details))
+        {
+            Logger.LogWarning("Transfer type 'Others' requires specification details.");
+            await ShowValidationErrorModal();
             return;
         }
 
@@ -536,6 +551,7 @@
         {
             ItemCode = SelectedParData.ItemCode,
             Description = _ItemDescription ?? string.Empty,
+            PropertyNumberT = PropertyNumberT ?? string.Empty,
             CstCode = SelectedCstData.CSTCode,
             Name = SelectedParData.ParName ?? string.Empty,
             DateTransferred = Date,
@@ -564,10 +580,24 @@
         {
             Logger.LogInformation("Transfer data inserted successfully.");
 
+            var ptrResponse = await HttpClient.GetAsync("https://localhost:7041/api/Transfer/GetLatestID");
+			if (ptrResponse.IsSuccessStatusCode)
+			{
+				PrtId = await ptrResponse.Content.ReadFromJsonAsync<int>();
+				Logger.LogInformation("Latest PtrId fetched: {PtrId}", PrtId);
+			}
+			else
+			{
+				Logger.LogError("Failed to fetch latest PtrId: {StatusCode}", ptrResponse.StatusCode);
+				return;
+			}
+
             var transferexcel = new TransferData
             {
+				PtrId = PrtId,
                 ItemCode = SelectedParData.ItemCode,
                 Description = _ItemDescription ?? string.Empty,
+                PropertyNumberT = PropertyNumberT ?? string.Empty,
                 CstCode = SelectedCstData.CSTCode,
                 Name = SelectedParData.ParName ?? string.Empty,
                 DateTransferred = Date,
@@ -630,13 +660,6 @@
         }
     }
 
-    private void TestModal()
-    {
-        var parameters = new ModalParameters();
-        parameters.Add("Content", "This is a test modal.");
-        ModalService.Show<TransferTableModal>("Test", parameters);
-    }
-
     private string GetTransferType()
     {
         if (TransferType1) return "Donation";
@@ -650,6 +673,19 @@
     {
         Logger.LogInformation("CancelForm triggered");
         NavigationManager.NavigateTo("/transfer", forceLoad: true);
+    }
+
+    private async Task ShowValidationErrorModal()
+    {
+        Logger.LogInformation("Showing Validation Error Modal");
+        var options = new ModalOptions
+        {
+            HideCloseButton = true,
+            DisableBackgroundCancel = true
+        };
+        var parameters = new ModalParameters();
+        await ModalService.Show<ErrorAddForm>("Validation Error", parameters, options).Result;
+        Logger.LogInformation("Validation error modal closed");
     }
 
     public void Dispose()

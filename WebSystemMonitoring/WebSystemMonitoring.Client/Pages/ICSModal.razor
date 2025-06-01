@@ -13,12 +13,15 @@
 @inject IModalService ModalService
 @inject ILogger<ICS> Logger
 @inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager
+@inject Radzen.ThemeService ThemeService
 
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
 <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
 <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 <script src="/static/site.js"></script>
+<script src="/js/theme.js"></script>
 
 <PageTitle>ICS</PageTitle>
 
@@ -88,7 +91,7 @@
     }
 </style>
 
-<h3 class="mb-4">Inventory Custodian Slip (ICS)</h3>
+<h1 class="mb-4">Inventory Custodian Slip (ICS)</h1>
 <RadzenForm id="form">
     <div class="main-row">
         <div class="form-group">
@@ -134,7 +137,9 @@
             <div style="font-size: 0.8em; color: #666; margin-top: 2px;">max 49999</div>
         </div>
     </div>
-
+    <div name="itemaddlink" style="margin: 10px 0 20px 0; text-align: center;">
+        <span @onclick="ShowAddItemModal" style="color: #007bff; cursor: pointer; text-decoration: underline; font-size: 0.95em;">item does not exist?</span>
+    </div>
     <div class="bottom-row">
         <div>
             <RadzenLabel Text="Received By:" />
@@ -151,11 +156,10 @@
     </div>
 
     <div class="button-row">
-        <input type="submit" value="Generate ICS" @onclick="GenerateExcel" disabled="@_isGenerating" />
+        <input type="submit" value="Submit" @onclick="GenerateExcel" disabled="@_isGenerating" />
         <button type="button" @onclick="CancelForm" disabled="@_isGenerating">Cancel</button>
     </div>
 </RadzenForm>
-
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
@@ -482,6 +486,20 @@
         var parameters = new ModalParameters();
         await ModalService.Show<ErrorAddForm>("Validation Error", parameters, options).Result;
         Logger.LogInformation("Validation error modal closed");
+    }
+
+    private async Task ShowAddItemModal()
+    {
+        var options = new ModalOptions
+            {
+                HideCloseButton = true,
+                DisableBackgroundCancel = true
+            };
+        var result = await ModalService.Show<AddItemICS>("Add New Item", options).Result;
+        if (!result.Cancelled)
+        {
+            await RefreshItemList();
+        }
     }
 
     private async Task CancelForm()

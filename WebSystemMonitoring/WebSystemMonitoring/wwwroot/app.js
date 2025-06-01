@@ -20,4 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-}); 
+});
+
+window.applyTheme = function (theme) {
+    document.body.classList.remove('rz-theme-default', 'rz-theme-dark', 'rz-theme-humanistic', 'rz-theme-software', 'rz-theme-material');
+    document.body.classList.add('rz-theme-' + theme);
+    localStorage.theme = theme;
+}

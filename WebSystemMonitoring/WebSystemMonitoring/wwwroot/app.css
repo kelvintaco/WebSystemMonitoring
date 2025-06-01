@@ -6021,7 +6021,7 @@
 :host, :root {
     --fa-style-family-brands: "Font Awesome 6 Brands";
     --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
-    --background: #ffffff;
+/*    --background: #ffffff;*/
     --text-color: #000000;
 }
 
@@ -9247,4 +9247,21 @@ html {
 .dark {
     --background: #2d2d2d;
     --text-color: #ffffff;
+}
+
+.rz-theme-dark, .rz-theme-dark body {
+    background-color: #18181b !important;
+    color: #fff !important;
+}
+
+.rz-theme-default, .rz-theme-default body {
+    background-color: #fff !important;
+    color: #18181b !important;
+}
+.rz-theme-dark .main-row {
+    background-color: #23232a;
+}
+
+.rz-theme-default .main-row {
+    background-color: #f9f9f9;
 }

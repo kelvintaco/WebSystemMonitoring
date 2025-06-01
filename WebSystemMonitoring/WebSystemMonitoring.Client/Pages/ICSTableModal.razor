@@ -13,11 +13,11 @@
 <RadzenDataGrid class="icsmodal" @ref="grid" Data="@ICSList" TItem="ICS" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
     <Columns>
         <RadzenDataGridColumn TItem="ICS" Property="ICSID" Title="ICS ID" />
-        <RadzenDataGridColumn TItem="ICS" Property="ItemCode" Title="Item Code" />
+        <RadzenDataGridColumn TItem="ICS" Property="ItemCode" Title="Serial" />
         <RadzenDataGridColumn TItem="ICS" Property="Description" Title="Description" />
         <RadzenDataGridColumn TItem="ICS" Property="CSTCode" Title="Cst Code" />
         <RadzenDataGridColumn TItem="ICS" Property="ICSName" Title="Name" />
-        <RadzenDataGridColumn TItem="ICS" Property="ICSPrice" Title="Price" />
+        <RadzenDataGridColumn TItem="ICS" Property="ICSPrice" Title="Price" FormatString="₱{0:N2}" />
         <RadzenDataGridColumn TItem="ICS" Property="Life" Title="Life" />
         <RadzenDataGridColumn TItem="ICS" Property="Qty" Title="Qty" />
         <RadzenDataGridColumn TItem="ICS" Property="ICSSDate" Title="IcsDate" />

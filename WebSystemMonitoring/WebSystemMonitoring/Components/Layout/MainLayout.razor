@@ -1,5 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@using Radzen
+@inject Radzen.ThemeService ThemeService
+@inject IJSRuntime JSRuntime
+
+<RadzenTheme @ref="themeRef" Theme="@currentTheme" Wcag="true" />
+
+<script src="/theme.js"></script>
 
 <div class="page">
     @if (!IsHomePage())
@@ -16,7 +23,6 @@
                 @* <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a> *@
             </div>
         }
-
         <article class="content px-4">
             @Body
         </article>
@@ -37,5 +43,21 @@
         var uri = NavigationManager.Uri;
         return uri.EndsWith("/", StringComparison.OrdinalIgnoreCase) ||
                uri.EndsWith("/index", StringComparison.OrdinalIgnoreCase);
+    }
+    private RadzenTheme themeRef;
+    private string currentTheme = "default";
+
+    public void SetTheme(string theme)
+    {
+        currentTheme = theme;
+        ThemeService.SetTheme(theme);
+        StateHasChanged();
+    }
+    public async Task SetThemeAsync(string theme)
+    {
+        currentTheme = theme;
+        ThemeService.SetTheme(theme);
+        await JSRuntime.InvokeVoidAsync("applyTheme", theme);
+        StateHasChanged();
     }
 }

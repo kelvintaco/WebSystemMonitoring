@@ -61,12 +61,6 @@
                     <span class="@(IsHomePage() ? "" : "hidden")">Transfer</span>
                 </NavLink>
             </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="settings">
-                    <i class="fas fa-cog text-blue-100 mr-3"></i>
-                    <span class="@(IsHomePage() ? "" : "hidden")">Settings</span>
-                </NavLink>
-            </div>
         </nav>
     </div>
 </div>
@@ -92,6 +86,11 @@
         border-radius: 0.5rem;
         transition: all 0.2s ease-in-out;
         font-weight: 500;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
     }
 
     .nav-link:hover {
@@ -121,11 +120,26 @@
 </style>
 
 @code {
-    private bool showSettings = false;
+    private bool isDarkMode = false;
 
-    private void ToggleSettings()
+    private async Task ToggleTheme()
     {
-        showSettings = !showSettings;
+        isDarkMode = !isDarkMode;
+        await JSRuntime.InvokeVoidAsync("document.documentElement.classList.toggle", "dark");
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", isDarkMode ? "dark" : "light");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var theme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+            isDarkMode = theme == "dark";
+            if (isDarkMode)
+            {
+                await JSRuntime.InvokeVoidAsync("document.documentElement.classList.add", "dark");
+            }
+        }
     }
 
     private bool IsHomePage()
@@ -133,15 +147,6 @@
         var uri = NavigationManager.Uri;
         return uri.EndsWith("/", StringComparison.OrdinalIgnoreCase) ||
                uri.EndsWith("/index", StringComparison.OrdinalIgnoreCase);
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // We would normally add JavaScript here to toggle the mobile menu
-            // But since we're focusing on CSS for now, we'll leave this as a comment
-        }
     }
 }
 

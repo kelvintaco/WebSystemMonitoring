@@ -146,11 +146,11 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label fw-bold">Property No.:</label>
-                    <p>@(SelectedItemPARData?.ItemCode.ToString() ?? "N/A")</p>
+                    <input type="text" class="form-control" @bind="PropertyNumber" placeholder="Enter property number" />
                 </div>
                 <div class="form-group">
                     <label class="form-label fw-bold">Unit Value:</label>
-                    <p>₱@(SelectedItemPARData?.value.ToString("N2") ?? "N/A")</p>
+                    <p>₱@(SelectedItemPARData?._value.ToString("N2") ?? "N/A")</p>
                 </div>
             </div>
         </div>
@@ -200,12 +200,12 @@
     private string? _ItemDescription;
     private string? _OnlyDesc;
 
-    private readonly List<string> conditions = new List<string> { "Servicable", "Nonservicable" };
+    private readonly List<string> conditions = new List<string> { "Serviceable", "Nonserviceable" };
     private List<string>? ItemList;
 
     private Items? SelectedItemData;
     private PAR? SelectedItemPARData;
-    private double Price;
+    private float Price;
 
     private string? SelectedItem;
     private string? Reason;
@@ -237,6 +237,8 @@
     private int SurQTY;
     private string? Clasification;
     private string? Copies;
+
+    private string? PropertyNumber;
 
     public class ParDisplayInfo
     {
@@ -359,7 +361,7 @@
                         var priceResponse = await HttpClient.GetAsync($"https://localhost:7041/api/Item/getItemsPriceByName/{SelectedItemPARData.ItemName}");
                         if (priceResponse.IsSuccessStatusCode)
                         {
-                            Price = await priceResponse.Content.ReadFromJsonAsync<double>();
+                            Price = await priceResponse.Content.ReadFromJsonAsync<float>();
                         }
                         else
                         {
@@ -389,12 +391,16 @@
         if (SelectedItemPARData == null)
         {
             Logger.LogWarning("No PAR data available to generate surrender form.");
+            await ShowValidationErrorModal();
             return;
         }
 
-        if (string.IsNullOrEmpty(Condition))
+        if (string.IsNullOrEmpty(Condition) || string.IsNullOrEmpty(PropertyNumber) || 
+            !(IsClassification1 || IsClassification2 || IsClassification3 || IsClassification4 || IsClassification5) ||
+            !(CopiesEndUser || CopiesGSO))
         {
-            Logger.LogWarning("Condition is required to generate surrender form.");
+            Logger.LogWarning("Form submission failed due to missing or invalid fields.");
+            await ShowValidationErrorModal();
             return;
         }
 
@@ -462,7 +468,8 @@
                 ItemName = _ItemDescription ?? string.Empty,
                 ParDate = SelectedItemPARData.ParDate ?? string.Empty,
                 ParID = SelectedItemPARData.ParID,
-                Value = SelectedItemPARData.value,
+                PropertyNumber = PropertyNumber ?? string.Empty,
+                Value = SelectedItemPARData._value,
                 Price = Price,
                 ParName = SelectedItemPARData.ParName ?? string.Empty,
                 Condition = Condition ?? string.Empty,
@@ -511,7 +518,7 @@
                 PrpName = _ItemDescription ?? string.Empty,
                 Description = _ItemDescription ?? string.Empty,
                 archiveDate = DateOnly.FromDateTime(DateTime.Now).ToString(),
-                Value = SelectedItemPARData.value,
+                Value = SelectedItemPARData._value,
                 ItemCond = Condition ?? string.Empty,
                 SurQTY = SelectedItemPARData.ParQty,
                 Clasification = Classification ?? string.Empty,
@@ -535,6 +542,19 @@
         NavigationManager.NavigateTo("/surrender", forceLoad: true);
     }
 
+    private async Task ShowValidationErrorModal()
+    {
+        Logger.LogInformation("Showing Validation Error Modal");
+        var options = new ModalOptions
+        {
+            HideCloseButton = true,
+            DisableBackgroundCancel = true
+        };
+        var parameters = new ModalParameters();
+        await ModalService.Show<ErrorAddForm>("Validation Error", parameters, options).Result;
+        Logger.LogInformation("Validation error modal closed");
+    }
+
     public void Dispose()
     {
         cts.Cancel();
@@ -549,7 +569,7 @@
         public string ItemDesc { get; set; }
         public string ParName { get; set; }
         public string ParDate { get; set; }
-        public double value { get; set; }
+        public float _value { get; set; }
         public int ParQty { get; set; }
         public string DprHeadName { get; set; }
     }
@@ -576,8 +596,9 @@
         public string ItemName { get; set; }
         public string ParDate { get; set; }
         public string ParID { get; set; }
-        public double Value { get; set; }
-        public double Price { get; set; }
+        public string PropertyNumber { get; set; }
+        public float Value { get; set; }
+        public float Price { get; set; }
         public string ParName { get; set; }
         public string Condition { get; set; }
         public bool IsClassification1 { get; set; }

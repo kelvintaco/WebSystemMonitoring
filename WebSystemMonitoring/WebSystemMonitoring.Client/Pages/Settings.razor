@@ -2,21 +2,87 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 @inject Radzen.ThemeService ThemeService
+@rendermode InteractiveAuto
 
-<div class="settings-container p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-    <h3 class="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Settings</h3>
-    <div>
-        <h4 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Theme Settings</h4>
-        <div class="theme-options flex flex-col gap-4">
-            <RadzenAppearanceToggle />
-            <span>Toggle between Light and Dark Mode</span>
+<script src="/js/theme.js"></script>
+<RadzenContent>
+    <div class="settings-container p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+        <h3 class="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Settings</h3>
+        <div>
+            <h4 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Theme Settings</h4>
+            <div class="theme-options flex flex-col gap-4">
+                <div class="flex items-center gap-4">
+                    <RadzenDropDown @bind-Value="@selectedTheme" 
+                                  Data="@themes" 
+                                  TextProperty="Name" 
+                                  ValueProperty="Value"
+                                  Change="@(args => OnThemeChange(args))"
+                                  Class="w-48" />
+                    <span class="text-gray-700 dark:text-gray-300">Select Theme</span>
+                </div>
+            </div>
         </div>
+        <RadzenTheme Wcag=true Theme="default"></RadzenTheme>
     </div>
-</div>
+</RadzenContent>
 
 @code {
-    // private async Task ChangeTheme(string theme)
-    // {
-    //     await ThemeService.ChangeTheme(theme);
-    // }
+    private string selectedTheme = "default";
+    private bool isDarkMode = false;
+    private List<ThemeOption> themes = new List<ThemeOption>
+    {
+        new ThemeOption { Name = "Default", Value = "default" },
+        new ThemeOption { Name = "Standard", Value = "standard" },
+        new ThemeOption { Name = "Dark", Value = "dark" },
+        new ThemeOption { Name = "Humanistic", Value = "humanistic" },
+        new ThemeOption { Name = "Software", Value = "software" },
+        new ThemeOption { Name = "Material", Value = "material" },
+        new ThemeOption { Name = "Material Dark", Value = "material dark" }
+    };
+
+    private class ThemeOption
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Load saved theme preference from local storage
+            var savedTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+            if (!string.IsNullOrEmpty(savedTheme))
+            {
+                selectedTheme = savedTheme;
+                ThemeService.SetTheme(selectedTheme);
+            }
+
+            // Load dark mode preference
+            var savedDarkMode = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "darkMode");
+            if (!string.IsNullOrEmpty(savedDarkMode))
+            {
+                isDarkMode = bool.Parse(savedDarkMode);
+                ThemeService.SetTheme(isDarkMode ? "dark" : "light");
+            }
+
+            // Trigger a re-render to update the UI with the loaded values
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnThemeChange(object value)
+    {
+        selectedTheme = value.ToString();
+        ThemeService.SetTheme(selectedTheme);
+        await JSRuntime.InvokeVoidAsync("applyTheme", selectedTheme);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", selectedTheme);
+    }
+
+    private async Task OnDarkModeChange(object value)
+    {
+        isDarkMode = (bool)value;
+        ThemeService.SetTheme(isDarkMode ? "dark" : "light");
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "darkMode", isDarkMode.ToString());
+    }
 }

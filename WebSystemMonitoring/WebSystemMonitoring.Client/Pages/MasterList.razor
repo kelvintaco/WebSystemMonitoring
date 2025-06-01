@@ -180,7 +180,7 @@
                         Style="width: 100%;">
             <Columns>
                 <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Item Code" Width="80px" />
+                <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Serial" Width="80px" />
                 <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
                 <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
                 <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
@@ -190,7 +190,7 @@
                 <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
                 <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
                 <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
-                <RadzenDataGridColumn TItem="PAR" Property="_value" Title="Value" Width="80px" FormatString="{0:C}" />
+                <RadzenDataGridColumn TItem="PAR" Property="_value" Title="Value" Width="80px" FormatString="₱{0:N2}" />
                 <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
             </Columns>
         </RadzenDataGrid>
@@ -230,7 +230,7 @@
                         Style="width: 100%;">
             <Columns>
                 <RadzenDataGridColumn TItem="Transfer" Property="PtrId" Title="PRT ID" />
-                <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Item Code" />
+                <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Serial" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
                 <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
                 <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
@@ -277,8 +277,8 @@
                         Responsive="true"
                         Style="width: 100%;">
             <Columns>
-                <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="ItemCode" />
-                <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="ItemName" />
+                <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="Serial" />
+                <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="Name" />
                 <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
                 <RadzenDataGridColumn TItem="Items" Property="Stock" Title="Stock" />
                 @* <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
