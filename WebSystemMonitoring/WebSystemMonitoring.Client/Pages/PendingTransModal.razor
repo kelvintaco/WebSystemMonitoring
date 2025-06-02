@@ -1,0 +1,63 @@
+﻿@using Radzen.Blazor;
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<h1>Additional Transfer Details</h1>
+<RadzenDataGrid class="pendingtransfermodal" @ref="grid" Data="@TransferList" TItem="PendingTrans" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="PendingTrans" Property="PtrId" Title="PRT ID" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="from" Title="From" Width="150px" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="to" Title="To" Width="150px" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="reason" Title="Reason" Width="200px" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="Amount" Title="Amount" Width="100px" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="CstCode" Title="CST Code" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="rvName" Title="Receive Name" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="fundccl" Title="Fund CCL" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="apprvdBy" Title="Approved By" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="designationOf" Title="Designation Of" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="approvedByDate" Title="Approved By Date" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="releaseBy" Title="Released By" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="designationRelease" Title="Designation Release" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="releaseByDate" Title="Release By Date" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="receivedBy" Title="Received By" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="designationReceived" Title="Designation Received" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="receivedByDate" Title="Received By Date" />
+        <RadzenDataGridColumn TItem="PendingTrans" Property="dateAcquired" Title="Date Acquired" />
+    </Columns>
+</RadzenDataGrid>
+<div class="button-row" style="margin-top: 20px;">
+    <RadzenButton ButtonType="ButtonType.Button" Text="Close" Click="CloseModal" Variant="Variant.Text" />
+</div>
+
+@code {
+    [CascadingParameter] public BlazoredModalInstance ModalInstance { get; set; }
+    private RadzenDataGrid<PendingTrans> grid;
+    private List<PendingTrans>? TransferList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7041/api/PendingTrans");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            TransferList = JsonConvert.DeserializeObject<List<PendingTrans>>(json);
+        }
+        else
+        {
+            TransferList = null;
+        }
+    }
+    private async Task CloseModal()
+    {
+        if (ModalInstance != null)
+        {
+            await ModalInstance.CloseAsync(ModalResult.Cancel());
+        }
+    }
+}

@@ -1,0 +1,661 @@
+﻿@using Radzen.Blazor
+@using MatBlazor
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using System.Globalization
+@using Newtonsoft.Json
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Text
+@using System.Text.Json
+@using OfficeOpenXml
+@using System.IO
+@page "/pendings"
+@rendermode InteractiveAuto
+
+@inject HttpClient HttpClient
+@inject IModalService ModalService
+@inject NavigationManager NavigationManager
+
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+<link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+<script src="_content/Blazored.Modal/blazored.modal.js"></script>
+
+<style>
+    /* Custom styles for RadzenDataGrid */
+    .custom-radzen-grid {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        width: 100%;
+        min-width: 1200px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .custom-radzen-grid ::deep .rz-datatable-header {
+        background-color: #1f2937;
+        color: white;
+        font-weight: bold;
+        padding: 1rem;
+        border: none;
+    }
+
+    .custom-radzen-grid ::deep .rz-grid-table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .custom-radzen-grid ::deep .rz-datatable-scrollable-header {
+        background-color: #1f2937;
+    }
+
+    .custom-radzen-grid ::deep .rz-datatable-scrollable-header-box {
+        margin-right: 0 !important;
+    }
+
+    .custom-radzen-grid ::deep .rz-column-title {
+        color: white;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.85rem;
+    }
+
+    .custom-radzen-grid ::deep .rz-grid-table th {
+        background-color: #1f2937;
+        border-color: #374151;
+        padding: 0.5rem;
+    }
+
+    .custom-radzen-grid ::deep .rz-grid-table tr {
+        background-color: white;
+        transition: background-color 0.2s;
+    }
+
+    .custom-radzen-grid ::deep .rz-grid-table tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .custom-radzen-grid ::deep .rz-grid-table td {
+        padding: 0.5rem;
+        border-color: #e5e7eb;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.875rem;
+    }
+
+    .custom-radzen-grid ::deep .rz-paginator {
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        padding: 0.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .custom-radzen-grid ::deep .rz-paginator-element {
+        color: #374151;
+        font-weight: 500;
+        background-color: transparent;
+        margin: 0 0.25rem;
+    }
+
+    .custom-radzen-grid ::deep .rz-paginator-element:hover:not(.rz-state-disabled) {
+        background-color: #e5e7eb;
+        color: #111827;
+    }
+
+    .custom-radzen-grid ::deep .rz-paginator-page.rz-state-active {
+        background-color: #1f2937;
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .approve-btn {
+        background-color: #10B981;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .approve-btn:hover {
+        background-color: #059669;
+    }
+
+    .disapprove-btn {
+        background-color: #EF4444;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .disapprove-btn:hover {
+        background-color: #DC2626;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        margin-bottom: 0;
+    }
+
+    .collapse-button {
+        background: none;
+        border: none;
+        color: #1f2937;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .collapse-button:hover {
+        color: #4b5563;
+    }
+
+    .collapse-button i {
+        transition: transform 0.3s ease;
+    }
+
+    .collapse-button.collapsed i {
+        transform: rotate(-90deg);
+    }
+
+    .table-section {
+        transition: all 0.3s ease;
+    }
+
+    .table-section.collapsed {
+        display: none;
+    }
+
+    .pardatagrid {
+        min-width: 700px;
+        width: 65%;
+        margin-left: 0;
+    }
+
+    .pardatagrid ::deep .rz-grid-table tr,
+    .pardatagrid ::deep .rz-datatable-header {
+        background-color: transparent !important;
+    }
+</style>
+
+<h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+    <i class="fas fa-exclamation-circle text-blue-700"></i>
+    Pendings
+</h1>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-exclamation text-blue-700"></i>
+        PAR
+    </h1>
+    <button class="collapse-button @(isEntryListCollapsed ? "collapsed" : "")" @onclick="ToggleEntryList">
+        <i class="fas fa-chevron-down"></i>
+        @(isEntryListCollapsed ? "Expand" : "Collapse")
+    </button>
+</div>
+<div class="table-section @(isEntryListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid @ref="PendingPAR"
+                        Data="@PendingPARs"
+                        TItem="PendingPAR"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        FilterMode="FilterMode.Advanced"
+                        class="custom-radzen-grid"
+                        Responsive="true"
+                        Style="width: 100%;">
+            <Columns>
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ParID" Title="PAR ID" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ItemCode" Title="Serial" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ItemName" Title="Item Name" Width="150px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ItemDesc" Title="Description" Width="200px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ParName" Title="Custodian" Width="150px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="refNo" Title="Ref No." Width="100px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ParDate" Title="Date" Width="100px" />
+                @* <RadzenDataGridColumn TItem="PendingPAR" Property="DprHeadName" Title="Dept Head" Width="150px" /> *@
+                @* 
+                <RadzenDataGridColumn TItem="PendingPAR" Property="Classification" Title="Class" Width="150px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="FundCls" Title="Fund Source" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="SourceCopies" Title="Dist. Copies" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Property="_value" Title="Value" Width="100px" FormatString="₱{0:N2}" /> *@
+                <RadzenDataGridColumn TItem="PendingPAR" Property="ParQty" Title="Quantity" Width="80px" />
+                <RadzenDataGridColumn TItem="PendingPAR" Context="data" Title="Actions" TextAlign="TextAlign.Center" Width="180px">
+                    <Template Context="data">
+                        <div class="action-buttons">
+                            <button class="approve-btn" @onclick="() => ApprovePAR(data)">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="disapprove-btn" @onclick="() => DisapprovePAR(data)">
+                                <i class="fas fa-times"></i> Disapprove
+                            </button>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-exclamation text-blue-700"></i>
+        ICS
+    </h1>
+    <button class="collapse-button @(isICSListCollapsed ? "collapsed" : "")" @onclick="ToggleICSList">
+        <i class="fas fa-chevron-down"></i>
+        @(isICSListCollapsed ? "Expand" : "Collapse")
+    </button>
+</div>
+<div class="table-section @(isICSListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid class="icsmodal" @ref="_PendingICS" Data="@PendingICS" TItem="PendingICS" AllowSorting="true" AllowPaging="true" AllowFiltering="true" PageSize="10">
+            <Columns>
+                @* <RadzenDataGridColumn TItem="PendingICS" Property="ICSID" Title="ICS ID" Width="100px" /> *@
+                <RadzenDataGridColumn TItem="PendingICS" Property="ItemCode" Title="Serial" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingICS" Property="Description" Title="Description" Width="200px" />
+                <RadzenDataGridColumn TItem="PendingICS" Property="CSTCode" Title="Cst Code" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingICS" Property="ICSName" Title="Name" Width="150px" />
+                <RadzenDataGridColumn TItem="PendingICS" Property="ICSPrice" Title="Price" Width="100px" FormatString="₱{0:N2}" />
+                @* <RadzenDataGridColumn TItem="PendingICS" Property="Life" Title="Life" Width="80px" />
+                <RadzenDataGridColumn TItem="PendingICS" Property="Qty" Title="Qty" Width="80px" /> *@
+                <RadzenDataGridColumn TItem="PendingICS" Property="ICSSDate" Title="IcsDate" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingICS" Context="data" Title="Actions" TextAlign="TextAlign.Center" Width="180px">
+                    <Template Context="data">
+                        <div class="action-buttons">
+                            <button class="approve-btn" @onclick="() => ApproveICS(data)">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="disapprove-btn" @onclick="() => DisapproveICS(data)">
+                                <i class="fas fa-times"></i> Disapprove
+                            </button>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-exclamation text-blue-700"></i>
+        Surrender
+    </h1>
+    <button class="collapse-button @(isSurListCollapsed ? "collapsed" : "")" @onclick="ToggleSurList">
+        <i class="fas fa-chevron-down"></i>
+        @(isSurListCollapsed ? "Expand" : "Collapse")
+    </button>
+</div>
+<div class="table-section @(isSurListCollapsed ? "collapsed" : "")">
+    <div class="w-full mt-6 mb-8" style="min-width:700px;">
+        <RadzenDataGrid class="pardatagrid" @ref="_PendingSur" Data="@PendingSur" TItem="PendingSur" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="10" Style="width:100%; min-width:700px;">
+            <Columns>
+                <RadzenDataGridColumn TItem="PendingSur" Property="archiveID" Title="Archive ID" Width="80px" />
+                <RadzenDataGridColumn TItem="PendingSur" Property="SurName" Title="Surrender Name" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingSur" Property="PrpName" Title="Property Name" Width="150px" />
+                @* <RadzenDataGridColumn TItem="PendingSur" Property="DprName" Title="Department Name" Width="120px" /> *@
+                <RadzenDataGridColumn TItem="PendingSur" Property="Value" Title="Value" Width="80px" />
+                <RadzenDataGridColumn TItem="PendingSur" Property="ItemCond" Title="Item Condition" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingSur" Property="SurQTY" Title="Surrender QTY" Width="80px" />
+                <RadzenDataGridColumn TItem="PendingSur" Context="data" Title="Actions" TextAlign="TextAlign.Center" Width="120px">
+                    <Template Context="data">
+                        <div class="action-buttons">
+                            <button class="approve-btn" @onclick="() => ApproveSurrender(data)">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="disapprove-btn" @onclick="() => DisapproveSurrender(data)">
+                                <i class="fas fa-times"></i> Disapprove
+                            </button>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<div class="table-header">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        <i class="fas fa-exclamation text-blue-700"></i>
+        Transfer
+    </h1>
+    <div class="flex items-center gap-3">
+        <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300
+                       active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransferTable">
+            <i class="fas fa-external-link-alt text-blue-700"></i> See All
+        </button>
+        <button class="collapse-button @(isTransferListCollapsed ? "collapsed" : "")" @onclick="ToggleTransferList">
+            <i class="fas fa-chevron-down"></i>
+            @(isTransferListCollapsed ? "Expand" : "Collapse")
+        </button>
+    </div>
+</div>
+
+<div class="table-section @(isTransferListCollapsed ? "collapsed" : "")">
+    <div class="w-full overflow-hidden mt-6 mb-8">
+        <RadzenDataGrid @ref="_PendingTrans"
+                        Data="@PendingTrans"
+                        TItem="PendingTrans"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        FilterMode="FilterMode.Advanced"
+                        class="custom-radzen-grid"
+                        Responsive="true"
+                        Style="width: 100%;">
+            <Columns>
+                <RadzenDataGridColumn TItem="PendingTrans" Property="PtrId" Title="PRT ID" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="ItemCode" Title="Serial" Width="100px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="Description" Title="Description" Width="200px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="Name" Title="Name" Width="150px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="dateTransferred" Title="Date Transferred" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="Condition" Title="Condition" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Property="TransferType" Title="Transfer Type" Width="120px" />
+                <RadzenDataGridColumn TItem="PendingTrans" Context="data" Title="Actions" TextAlign="TextAlign.Center" Width="180px">
+                    <Template Context="data">
+                        <div class="action-buttons">
+                            <button class="approve-btn" @onclick="() => ApproveTransfer(data)">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="disapprove-btn" @onclick="() => DisapproveTransfer(data)">
+                                <i class="fas fa-times"></i> Disapprove
+                            </button>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+<CascadingBlazoredModal></CascadingBlazoredModal>
+
+@code {
+    private List<PendingPAR>? PendingPARs;
+    private RadzenDataGrid<PendingPAR>? PendingPAR;
+    private List<PendingICS>? PendingICS;
+    private RadzenDataGrid<PendingICS>? _PendingICS;
+    private List<PendingSur>? PendingSur;
+    private RadzenDataGrid<PendingSur>? _PendingSur;
+    private List<PendingTrans>? PendingTrans;
+    private RadzenDataGrid<PendingTrans>? _PendingTrans;
+
+    private bool isEntryListCollapsed = false;
+    private bool isICSListCollapsed = false;
+    private bool isSurListCollapsed = false;
+    private bool isTransferListCollapsed = false;
+
+    private void ToggleEntryList()
+    {
+        isEntryListCollapsed = !isEntryListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ToggleICSList()
+    {
+        isICSListCollapsed = !isICSListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ToggleSurList()
+    {
+        isSurListCollapsed = !isSurListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ToggleTransferList()
+    {
+        isEntryListCollapsed = !isEntryListCollapsed;
+        StateHasChanged();
+    }
+
+    private void ShowTransferTable()
+    {
+        var options = new ModalOptions
+        {
+            Size = ModalSize.Automatic
+        };
+        ModalService.Show<PendingTransModal>("Pending Transfer", options);
+    }
+
+    private async Task ApprovePAR(PendingPAR par)
+    {
+        var parData = new
+        {
+            ParID = par.ParID,
+            ItemCode = par.ItemCode,
+            ItemName = par.ItemName,
+            ParName = par.ParName,
+            DprHeadName = par.DprHeadName,
+            ParDate = par.ParDate,
+            Classification = par.Classification,
+            FundCls = par.FundCls,
+            SourceCopies = par.SourceCopies,
+            refNo = par.refNo,
+            _value = par._value,
+            ParQty = par.ParQty,
+            ItemDesc = par.ItemDesc
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PAR", parData);
+        if (response.IsSuccessStatusCode)
+        {
+            await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingPAR/byPendingParID/{par.ParID}");
+            PendingPARs?.Remove(par);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task DisapprovePAR(PendingPAR par)
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingPAR/byPendingParID/{par.ParID}");
+        if (response.IsSuccessStatusCode)
+        {
+            PendingPARs?.Remove(par);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task ApproveICS(PendingICS ics)
+    {
+        var icsData = new
+        {
+            ItemCode = ics.ItemCode,
+            Description = ics.Description,
+            CSTCode = ics.CSTCode,
+            ICSName = ics.ICSName,
+            ICSPrice = ics.ICSPrice,
+            Life = ics.Life,
+            Qty = ics.Qty,
+			FundCluster = ics.FundCluster,
+            Position = ics.Position,
+            ICSSDate = ics.ICSSDate,
+            IcsDateReceived = ics.IcsDateReceived
+
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
+        if (response.IsSuccessStatusCode)
+        {
+            await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingICS/byPendingICScode/{ics.ICSID}");
+            PendingICS?.Remove(ics);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task DisapproveICS(PendingICS ics)
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingICS/byPendingICScode/{ics.ICSID}");
+        if (response.IsSuccessStatusCode)
+        {
+            PendingICS?.Remove(ics);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task ApproveSurrender(PendingSur sur)
+    {
+        var surData = new
+        {
+            SurName = sur.SurName,
+            PrpName = sur.PrpName,
+            Description = sur.Description,
+            archiveDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            Value = sur.Value,
+            Clasification = sur.Clasification,
+            Copies = sur.Copies,
+            ItemCond = sur.ItemCond,
+            SurQTY = sur.SurQTY,
+           
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", surData);
+        if (response.IsSuccessStatusCode)
+        {
+            await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingSur/byPendingarchiveID/{sur.archiveID}");
+            PendingSur?.Remove(sur);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task DisapproveSurrender(PendingSur sur)
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingSur/byPendingarchiveID/{sur.archiveID}");
+        if (response.IsSuccessStatusCode)
+        {
+            PendingSur?.Remove(sur);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task ApproveTransfer(PendingTrans trans)
+    {
+        var transData = new
+        {
+            ItemCode = trans.ItemCode,
+            Description = trans.Description,
+            CstCode = trans.CstCode,
+            Name = trans.Name,
+            dateTransferred = trans.dateTransferred,
+            Condition = trans.Condition,
+            rvName = trans.rvName,
+            TransferType = trans.TransferType,
+            apprvdBy = trans.apprvdBy,
+            approvedByDate = trans.approvedByDate,
+            designationOf = trans.designationOf,
+            designationReceived = trans.designationReceived,
+            designationRelease = trans.designationRelease,
+            from = trans.from,
+            fundccl = trans.fundccl,
+            reason = trans.reason,
+            receivedBy = trans.receivedBy,
+            receivedByDate = trans.receivedByDate,
+            releaseBy = trans.releaseBy,
+            releaseByDate = trans.releaseByDate,
+            to = trans.to,
+            dateAcquired = trans.dateAcquired,
+            Amount = trans.Amount
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transData);
+        if (response.IsSuccessStatusCode)
+        {
+            await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingTrans/byPendingptrid/{trans.PtrId}");
+            PendingTrans?.Remove(trans);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    private async Task DisapproveTransfer(PendingTrans trans)
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingTrans/byPendingptrid/{trans.PtrId}");
+        if (response.IsSuccessStatusCode)
+        {
+            PendingTrans?.Remove(trans);
+            StateHasChanged();
+            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var parresponse = await HttpClient.GetAsync("https://localhost:7041/api/PendingPAR");
+        if (parresponse.IsSuccessStatusCode)
+        {
+            var json = await parresponse.Content.ReadAsStringAsync();
+            PendingPARs = JsonConvert.DeserializeObject<List<PendingPAR>>(json);
+        }
+        else
+        {
+            PendingPARs = new List<PendingPAR>();
+        }
+
+        var icsresponse = await HttpClient.GetAsync("https://localhost:7041/api/PendingICS");
+        if (icsresponse.IsSuccessStatusCode)
+        {
+            var json = await icsresponse.Content.ReadAsStringAsync();
+            PendingICS = JsonConvert.DeserializeObject<List<PendingICS>>(json);
+        }
+        else
+        {
+            PendingICS = new List<PendingICS>();
+        }
+
+        var surresponse = await HttpClient.GetAsync("https://localhost:7041/api/PendingSur");
+        if (surresponse.IsSuccessStatusCode)
+        {
+            var json = await surresponse.Content.ReadAsStringAsync();
+            PendingSur = JsonConvert.DeserializeObject<List<PendingSur>>(json);
+        }
+        else
+        {
+            PendingSur = new List<PendingSur>();
+        }
+
+        var transresponse = await HttpClient.GetAsync("https://localhost:7041/api/PendingTrans");
+        if (transresponse.IsSuccessStatusCode)
+        {
+            var json = await transresponse.Content.ReadAsStringAsync();
+            PendingTrans = JsonConvert.DeserializeObject<List<PendingTrans>>(json);
+        }
+        else
+        {
+            PendingTrans = new List<PendingTrans>();
+        }
+    }
+}

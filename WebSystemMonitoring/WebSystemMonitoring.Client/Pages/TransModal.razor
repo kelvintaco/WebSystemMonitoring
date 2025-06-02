@@ -575,7 +575,7 @@
             Amount = SelectedParData.ParQty
         };
 
-        var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/Transfer", transfer);
+        var insertResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PendingTrans", transfer);
         if (insertResponse.IsSuccessStatusCode)
         {
             Logger.LogInformation("Transfer data inserted successfully.");

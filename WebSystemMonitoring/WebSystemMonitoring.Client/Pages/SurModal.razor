@@ -427,7 +427,7 @@
             }
         }
 
-        if (Condition == "Nonservicable")
+        if (Condition == "Nonserviceable")
         {
             var itemDisposal = new ItemDisposal
             {
@@ -525,7 +525,7 @@
                 Copies = copies
             };
 
-        var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", archiving);
+        var archiveResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PendingSur", archiving);
         if (!archiveResponse.IsSuccessStatusCode)
         {
             Logger.LogWarning("Failed to archive transaction: {StatusCode}, Reason: {ReasonPhrase}", archiveResponse.StatusCode, archiveResponse.ReasonPhrase);

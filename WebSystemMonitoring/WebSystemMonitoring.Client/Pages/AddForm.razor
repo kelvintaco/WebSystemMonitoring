@@ -499,7 +499,7 @@
                 var formDataJson = System.Text.Json.JsonSerializer.Serialize(formData);
                 Logger.LogInformation("Posting PAR data for quantity {CurrentQuantity}", i + 1);
                 var postPar = await HttpClient.PostAsync(
-                    "https://localhost:7041/api/PAR",
+                    "https://localhost:7041/api/PendingPAR",
                     new StringContent(formDataJson, Encoding.UTF8, "application/json")
                 );
                 if (!postPar.IsSuccessStatusCode)

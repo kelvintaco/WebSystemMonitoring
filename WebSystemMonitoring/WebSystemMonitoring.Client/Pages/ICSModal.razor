@@ -438,7 +438,7 @@
                 IcsDateReceived = Date
             };
 
-            var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
+            var icsResponse = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PendingICS", icsData);
             if (!icsResponse.IsSuccessStatusCode)
             {
                 Logger.LogError("Failed to save ICS data. Status: {StatusCode}, Reason: {ReasonPhrase}", icsResponse.StatusCode, icsResponse.ReasonPhrase);
