@@ -1,0 +1,39 @@
+@using Blazored.Modal
+@using Blazored.Modal.Services
+
+@inject NavigationManager NavigationManager
+
+<div class="text-center p-4">
+    <h4 class="@(IsSuccess ? "text-success" : "text-danger") mb-4">@Title</h4>
+    <p>@Message</p>
+    <button class="btn-purple mt-3" @onclick="CloseModal">OK</button>
+</div>
+
+<style>
+    .btn-purple {
+        background-color: #6B46C1;
+        color: white;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-purple:hover {
+        background-color: #553C9A;
+    }
+</style>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Message { get; set; }
+    [Parameter] public bool IsSuccess { get; set; }
+
+    private void CloseModal()
+    {
+        BlazoredModal.CloseAsync(ModalResult.Ok(true));
+        NavigationManager.NavigateTo("/pendings", forceLoad: true);
+    }
+} 

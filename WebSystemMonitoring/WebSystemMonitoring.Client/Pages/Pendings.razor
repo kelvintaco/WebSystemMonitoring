@@ -453,6 +453,7 @@
             ParID = par.ParID,
             ItemCode = par.ItemCode,
             ItemName = par.ItemName,
+            ItemDesc = par.ItemDesc,
             ParName = par.ParName,
             DprHeadName = par.DprHeadName,
             ParDate = par.ParDate,
@@ -462,7 +463,8 @@
             refNo = par.refNo,
             _value = par._value,
             ParQty = par.ParQty,
-            ItemDesc = par.ItemDesc
+            Unit = par.Unit
+            
         };
 
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/PAR", parData);
@@ -471,7 +473,20 @@
             await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingPAR/byPendingParID/{par.ParID}");
             PendingPARs?.Remove(par);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "PAR has been successfully approved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to approve PAR. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -482,7 +497,20 @@
         {
             PendingPARs?.Remove(par);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "PAR has been successfully disapproved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to disapprove PAR. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -497,11 +525,10 @@
             ICSPrice = ics.ICSPrice,
             Life = ics.Life,
             Qty = ics.Qty,
-			FundCluster = ics.FundCluster,
+            FundCluster = ics.FundCluster,
             Position = ics.Position,
             ICSSDate = ics.ICSSDate,
             IcsDateReceived = ics.IcsDateReceived
-
         };
 
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ICS", icsData);
@@ -510,7 +537,20 @@
             await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingICS/byPendingICScode/{ics.ICSID}");
             PendingICS?.Remove(ics);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "ICS has been successfully approved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to approve ICS. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -521,7 +561,20 @@
         {
             PendingICS?.Remove(ics);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "ICS has been successfully disapproved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to disapprove ICS. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -538,7 +591,6 @@
             Copies = sur.Copies,
             ItemCond = sur.ItemCond,
             SurQTY = sur.SurQTY,
-           
         };
 
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7041/api/ArchivedTransactions", surData);
@@ -547,7 +599,20 @@
             await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingSur/byPendingarchiveID/{sur.archiveID}");
             PendingSur?.Remove(sur);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "Surrender has been successfully approved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to approve surrender. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -558,7 +623,20 @@
         {
             PendingSur?.Remove(sur);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "Surrender has been successfully disapproved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to disapprove surrender. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -597,7 +675,20 @@
             await HttpClient.DeleteAsync($"https://localhost:7041/api/PendingTrans/byPendingptrid/{trans.PtrId}");
             PendingTrans?.Remove(trans);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "Transfer has been successfully approved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to approve transfer. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 
@@ -608,7 +699,20 @@
         {
             PendingTrans?.Remove(trans);
             StateHasChanged();
-            NavigationManager.NavigateTo("/pendings", forceLoad: true);
+            
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Success!");
+            parameters.Add("Message", "Transfer has been successfully disapproved.");
+            parameters.Add("IsSuccess", true);
+            await ModalService.Show<StatusModal>("", parameters).Result;
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Title", "Error");
+            parameters.Add("Message", "Failed to disapprove transfer. Please try again.");
+            parameters.Add("IsSuccess", false);
+            await ModalService.Show<StatusModal>("", parameters).Result;
         }
     }
 

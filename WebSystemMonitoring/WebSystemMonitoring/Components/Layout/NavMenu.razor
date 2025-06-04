@@ -36,6 +36,13 @@
             </div>
 
             <div class="nav-item">
+                <NavLink class="nav-link" href="pendings">
+                    <i class="fas fa-exclamation-circle text-blue-100 mr-3"></i>
+                    <span class="@(IsHomePage() ? "" : "hidden")">Pendings</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
                 <NavLink class="nav-link" href="addform">
                     <i class="fas fa-box text-blue-100 mr-3"></i>
                     <span class="@(IsHomePage() ? "" : "hidden")">PAR</span>
@@ -61,12 +68,7 @@
                     <span class="@(IsHomePage() ? "" : "hidden")">Transfer</span>
                 </NavLink>
             </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="pendings">
-                    <i class="fas fa-exclamation-circle text-blue-100 mr-3"></i>
-                    <span class="@(IsHomePage() ? "" : "hidden")">Pendings</span>
-                </NavLink>
-            </div>
+            
         </nav>
     </div>
 </div>

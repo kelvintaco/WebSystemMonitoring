@@ -9244,24 +9244,12 @@ html {
     min-width: 0;
 }
 
-.dark {
-    --background: #2d2d2d;
-    --text-color: #ffffff;
+.rz-calendar .rz-inputgroup-addon {
+    right: 0;
+    position: absolute;
+    /* Adjust as needed */
 }
 
-.rz-theme-dark, .rz-theme-dark body {
-    background-color: #18181b !important;
-    color: #fff !important;
-}
-
-.rz-theme-default, .rz-theme-default body {
-    background-color: #fff !important;
-    color: #18181b !important;
-}
-.rz-theme-dark .main-row {
-    background-color: #23232a;
-}
-
-.rz-theme-default .main-row {
-    background-color: #f9f9f9;
+.rz-calendar {
+    position: relative;
 }

@@ -31,7 +31,7 @@
         flex-wrap: nowrap;
         gap: 20px;
         padding: 20px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(18, 42, 255, 0.5);
         border-radius: 8px;
         margin-bottom: 20px;
         background-color: #f9f9f9;
@@ -45,7 +45,7 @@
         display: flex;
         gap: 20px;
         padding: 20px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(18, 42, 255, 0.5);
         border-radius: 8px;
         margin-bottom: 20px;
         background-color: #f9f9f9;
@@ -54,7 +54,7 @@
     .bottom-row > div {
         flex: 1;
         padding: 15px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid rgba(18, 42, 255, 0.15);
         border-radius: 6px;
         background-color: white;
     }
@@ -64,16 +64,16 @@
         justify-content: center;
         gap: 10px;
         padding: 20px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(18, 42, 255, 0.5);
         border-radius: 8px;
         background-color: #f9f9f9;
     }
 
     input[type="submit"], button {
         padding: 8px 20px;
-        border: 1px solid #007bff;
+        border: 1px solid #6B46C1;
         border-radius: 4px;
-        background-color: #007bff;
+        background-color: #6B46C1;
         color: white;
         cursor: pointer;
         transition: background-color 0.2s;
@@ -81,12 +81,12 @@
     }
 
     input[type="submit"]:hover, button:hover {
-        background-color: #0056b3;
+        background-color: #553C9A;
     }
 
     input[type="submit"]:disabled, button:disabled {
-        background-color: #cccccc;
-        border-color: #cccccc;
+        background-color: #9F7AEA;
+        border-color: #9F7AEA;
         cursor: not-allowed;
     }
 </style>
@@ -125,7 +125,7 @@
         </div>
         <div class="form-group">
             <RadzenLabel Text="Date" />
-            <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:150px;" />
+            <RadzenDatePicker TValue="DateOnly" @bind-Value="Date" Required="true" DateFormat="yyyy-MM-dd" Style="width:120px;" />
         </div>
         <div class="form-group">
             <RadzenLabel Text="Property No." />
@@ -134,7 +134,7 @@
         <div class="form-group">
             <RadzenLabel Text="Total Value" />
             <RadzenTextBox Value="@value.ToString("C", new CultureInfo("en-PH"))" ReadOnly="true" Style="width:100px;" />
-            <div style="font-size: 0.8em; color: #666; margin-top: 2px;">max 49999</div>
+            <div style="font-size: 0.8em; color: #666;">max 49999</div>
         </div>
     </div>
     <div name="itemaddlink" style="margin: 10px 0 20px 0; text-align: center;">
@@ -354,7 +354,7 @@
         currentStock = 0;
         Qty = 0;
         Unit = null;
-        _Life = 0;
+        //_Life = 0;
         SelectedCstData = null;
         StateHasChanged();
     }
