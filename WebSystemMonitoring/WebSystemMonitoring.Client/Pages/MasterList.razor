@@ -151,143 +151,186 @@
     .table-section.collapsed {
         display: none;
     }
+
+    .search-container {
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    .search-input {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+    .search-input::placeholder {
+        color: #9ca3af;
+    }
+    .search-button {
+        background-color: #2563eb;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .search-button:hover {
+        background-color: #1d4ed8;
+    }
+    .search-button:active {
+        background-color: #1e40af;
+    }
+    .clear-button {
+        background-color: #e5e7eb;
+        color: #4b5563;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .clear-button:hover {
+        background-color: #d1d5db;
+        color: #1f2937;
+    }
+    .clear-button:active {
+        background-color: #9ca3af;
+    }
 </style>
 
-<div class="table-header">
-    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-        <i class="fas fa-table text-blue-700"></i>
-        Entry List
-    </h1>
-    <button class="collapse-button @(isEntryListCollapsed ? "collapsed" : "")" @onclick="ToggleEntryList">
-        <i class="fas fa-chevron-down"></i>
-        @(isEntryListCollapsed ? "Expand" : "Collapse")
-    </button>
-</div>
-
-<div class="table-section @(isEntryListCollapsed ? "collapsed" : "")">
-    <div class="w-full overflow-hidden mt-6 mb-8">
-        <RadzenDataGrid @ref="grid"
-                        Data="@TransactList"
-                        TItem="PAR"
-                        AllowSorting="true"
-                        AllowPaging="true"
-                        AllowFiltering="true"
-                        PageSize="10"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        FilterMode="FilterMode.Advanced"
-                        class="custom-radzen-grid"
-                        Responsive="true"
-                        Style="width: 100%;">
-            <Columns>
-                <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Serial" Width="80px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
-                <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Dept Head" Width="120px" />
-                <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date" Width="90px" />
-                <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Class" Width="120px" />
-                <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
-                <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
-                <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
-                <RadzenDataGridColumn TItem="PAR" Property="_value" Title="Value" Width="80px" FormatString="₱{0:N2}" />
-                <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
-            </Columns>
-        </RadzenDataGrid>
-    </div>
-</div>
-
-<div class="table-header">
-    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-        <i class="fas fa-table text-blue-700"></i>
-        Transfer Records
-    </h1>
-    <div class="flex items-center gap-3">
-        <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 
-                       active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransferTable">
-            <i class="fas fa-external-link-alt text-blue-700"></i> See All
-        </button>
-        <button class="collapse-button @(isTransferListCollapsed ? "collapsed" : "")" @onclick="ToggleTransferList">
-            <i class="fas fa-chevron-down"></i>
-            @(isTransferListCollapsed ? "Expand" : "Collapse")
-        </button>
-    </div>
-</div>
-
-<div class="table-section @(isTransferListCollapsed ? "collapsed" : "")">
-    <div class="w-full overflow-hidden mt-6 mb-8">
-        <RadzenDataGrid @ref="transfergrid"
-                        Data="@TransferList"
-                        TItem="Transfer"
-                        AllowSorting="true"
-                        AllowPaging="true"
-                        AllowFiltering="true"
-                        PageSize="10"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        FilterMode="FilterMode.Advanced"
-                        class="custom-radzen-grid"
-                        Responsive="true"
-                        Style="width: 100%;">
-            <Columns>
-                <RadzenDataGridColumn TItem="Transfer" Property="PtrId" Title="PRT ID" />
-                <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Serial" />
-                <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
-                <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
-                <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
-                <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
-                <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="Transfer Type" />
-                <RadzenDataGridColumn TItem="Transfer" Property="from" Title="From" />
-                <RadzenDataGridColumn TItem="Transfer" Property="to" Title="To" />
-                <RadzenDataGridColumn TItem="Transfer" Property="reason" Title="Reason" />
-                <RadzenDataGridColumn TItem="Transfer" Property="Amount" Title="Amount" />
-            </Columns>
-        </RadzenDataGrid>
-    </div>
-</div>
-
-<div class="table-header">
-    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-        <i class="fas fa-table text-blue-700"></i>
-        Item Inventory
-    </h1>
-    <div class="flex items-center gap-3">
-        <button class="flex items-center gap-2 bg-green-200 hover:bg-green-300 
-                       active:bg-green-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowAddItem">
-            <i class="fas fa-plus text-black-700"></i> Add Item
-        </button>
-        <button class="collapse-button @(isItemListCollapsed ? "collapsed" : "")" @onclick="ToggleItemList">
-            <i class="fas fa-chevron-down"></i>
-            @(isItemListCollapsed ? "Expand" : "Collapse")
-        </button>
-    </div>
-</div>
-
-<div class="table-section @(isItemListCollapsed ? "collapsed" : "")">
-    <div class="w-full overflow-hidden mt-6 mb-8">
-        <RadzenDataGrid @ref="itemgrid"
-                        Data="@_itemlist"
-                        TItem="Items"
-                        AllowSorting="true"
-                        AllowPaging="true"
-                        AllowFiltering="true"
-                        PageSize="10"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        FilterMode="FilterMode.Advanced"
-                        class="custom-radzen-grid"
-                        Responsive="true"
-                        Style="width: 100%;">
-            <Columns>
-                <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="Serial" />
-                <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="Name" />
-                <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
-                <RadzenDataGridColumn TItem="Items" Property="Stock" Title="Stock" />
-                @* <RadzenDataGridColumn TItem="Items" Property="Servicable" Title="Servicable" />
-                <RadzenDataGridColumn TItem="Items" Property="NonServ" Title="NonServ" /> *@
-                <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
-            </Columns>
-        </RadzenDataGrid>
-    </div>
-</div>
+<RadzenTabs RenderMode="TabRenderMode.Client" class="w-full">
+    <Tabs>
+        <RadzenTabsItem Text="Entry List">
+            <div class="w-full overflow-hidden">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Search Entry List..." @bind="entrySearchTerm" @bind:event="oninput" />
+                    <button class="search-button" @onclick="FilterEntryList">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="clear-button" @onclick="ClearEntrySearch">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <RadzenDataGrid @ref="grid"
+                                Data="@FilteredEntryList"
+                                TItem="PAR"
+                                AllowSorting="true"
+                                AllowPaging="true"
+                                AllowFiltering="true"
+                                PageSize="10"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterMode="FilterMode.Advanced"
+                                class="custom-radzen-grid"
+                                Responsive="true"
+                                Style="width: 100%;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="PAR" Property="ParID" Title="PAR ID" Width="80px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ItemCode" Title="Serial" Width="80px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ItemName" Title="Item Name" Width="120px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ItemDesc" Title="Description" Width="120px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ParName" Title="Custodian" Width="120px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="DprHeadName" Title="Dept Head" Width="120px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ParDate" Title="Date" Width="90px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="Classification" Title="Class" Width="120px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="FundCls" Title="Fund Source" Width="100px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="SourceCopies" Title="Dist. Copies" Width="100px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="refNo" Title="Ref No." Width="80px" />
+                        <RadzenDataGridColumn TItem="PAR" Property="_value" Title="Value" Width="80px" FormatString="₱{0:N2}" />
+                        <RadzenDataGridColumn TItem="PAR" Property="ParQty" Title="Quantity" Width="60px" />
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Transfer Records">
+            <div class="w-full overflow-hidden">
+                <div class="mb-2">
+                    <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowTransferTable">
+                        <i class="fas fa-external-link-alt text-blue-700"></i> See All
+                    </button>
+                </div>
+                <div class="search-container mb-2">
+                    <input type="text" class="search-input" placeholder="Search Transfer..." @bind="transferSearchTerm" @bind:event="oninput" />
+                    <button class="search-button" @onclick="FilterTransferList">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="clear-button" @onclick="ClearTransferSearch">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <RadzenDataGrid @ref="transfergrid"
+                                Data="@FilteredTransferList"
+                                TItem="Transfer"
+                                AllowSorting="true"
+                                AllowPaging="true"
+                                AllowFiltering="true"
+                                PageSize="10"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterMode="FilterMode.Advanced"
+                                class="custom-radzen-grid"
+                                Responsive="true"
+                                Style="width: 100%;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Transfer" Property="PtrId" Title="PRT ID" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="ItemCode" Title="Serial" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="Description" Title="Description" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="Name" Title="Name" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="dateTransferred" Title="Date Transferred" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="Condition" Title="Condition" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="TransferType" Title="Transfer Type" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="from" Title="From" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="to" Title="To" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="reason" Title="Reason" />
+                        <RadzenDataGridColumn TItem="Transfer" Property="Amount" Title="Amount" />
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Item Inventory">
+            <div class="w-full overflow-hidden">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Search Item Inventory..." @bind="itemSearchTerm" @bind:event="oninput" />
+                    <button class="search-button" @onclick="FilterItemList">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="clear-button" @onclick="ClearItemSearch">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <RadzenDataGrid @ref="itemgrid"
+                                Data="@FilteredItemList"
+                                TItem="Items"
+                                AllowSorting="true"
+                                AllowPaging="true"
+                                AllowFiltering="true"
+                                PageSize="10"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterMode="FilterMode.Advanced"
+                                class="custom-radzen-grid"
+                                Responsive="true"
+                                Style="width: 100%;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Items" Property="ItemCode" Title="Serial" />
+                        <RadzenDataGridColumn TItem="Items" Property="ItemName" Title="Name" />
+                        <RadzenDataGridColumn TItem="Items" Property="ItemDeets" Title="Details" />
+                        <RadzenDataGridColumn TItem="Items" Property="Stock" Title="Stock" />
+                        <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
 
 <div class="mt-4 border p-4 bg-white rounded-lg shadow-sm">
     <h5 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
@@ -303,10 +346,6 @@
                        active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowICS">
             <i class="fas fa-file-alt text-purple-700"></i> ICS
         </button>
-        @* <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
-                       active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowArchivesList">
-            <i class="fas fa-file-alt text-purple-700"></i> Archives
-        </button> *@
         <button class="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 
                        active:bg-purple-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" @onclick="ShowItemDisposal">
             <i class="fas fa-file-alt text-purple-700"></i> Item Disposal
@@ -317,22 +356,6 @@
 <CascadingBlazoredModal></CascadingBlazoredModal>
 
 @code {
-    // public class PAR
-    // {
-    //     public string ParID { get; set; }
-    //     public int ItemCode { get; set; }
-    //     public string ItemName { get; set; }
-    //     public string ParName { get; set; }
-    //     public string DprHeadName { get; set; }
-    //     public string ParDate { get; set; }
-    //     public string Classification { get; set; }
-    //     public string FundCls { get; set; }
-    //     public string SourceCopies { get; set; }
-    //     public int refNo { get; set; }
-    //     public float value { get; set; }
-    //     public int ParQty { get; set; }
-    // }
-
     private List<PAR>? TransactList;
     private List<Items>? _itemlist;
     private RadzenDataGrid<Items> itemgrid;
@@ -340,9 +363,53 @@
     private List<Transfer>? TransferList;
     private RadzenDataGrid<Transfer> transfergrid;
 
-    private bool isEntryListCollapsed = false;
-    private bool isTransferListCollapsed = false;
-    private bool isItemListCollapsed = false;
+    private string entrySearchTerm = "";
+    private string transferSearchTerm = "";
+    private string itemSearchTerm = "";
+
+    private List<PAR>? FilteredEntryList => TransactList?.Where(p =>
+        string.IsNullOrEmpty(entrySearchTerm) ||
+        p.ParID?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.ItemCode.ToString().Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        p.ItemName?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.ItemDesc?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.ParName?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.DprHeadName?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.ParDate?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.Classification?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.FundCls?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.SourceCopies?.Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        p.refNo.ToString().Contains(entrySearchTerm, StringComparison.OrdinalIgnoreCase)
+    ).ToList();
+
+    private List<Transfer>? FilteredTransferList => TransferList?.Where(t =>
+        string.IsNullOrEmpty(transferSearchTerm) ||
+        t.PtrId.ToString().Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        t.ItemCode.ToString().Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        t.Description?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.Name?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.TransferType?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.from?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.to?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.reason?.Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        t.Amount.ToString().Contains(transferSearchTerm, StringComparison.OrdinalIgnoreCase)
+    ).ToList();
+
+    private List<Items>? FilteredItemList => _itemlist?.Where(i =>
+        string.IsNullOrEmpty(itemSearchTerm) ||
+        i.ItemCode.ToString().Contains(itemSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        i.ItemName?.Contains(itemSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        i.ItemDeets?.Contains(itemSearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+        i.Stock.ToString().Contains(itemSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        i.Place?.Contains(itemSearchTerm, StringComparison.OrdinalIgnoreCase) == true
+    ).ToList();
+
+    private void FilterEntryList() => StateHasChanged();
+    private void FilterTransferList() => StateHasChanged();
+    private void FilterItemList() => StateHasChanged();
+    private void ClearEntrySearch() { entrySearchTerm = ""; StateHasChanged(); }
+    private void ClearTransferSearch() { transferSearchTerm = ""; StateHasChanged(); }
+    private void ClearItemSearch() { itemSearchTerm = ""; StateHasChanged(); }
 
     protected override async Task OnInitializedAsync()
     {
@@ -419,15 +486,6 @@
             };
         ModalService.Show<AddItem>("", options);
     }
-	// private void ShowArchivesList()
-	// {
-	// 	var options = new ModalOptions
-	// 		{
-	// 			HideCloseButton = true,
-	// 			Size = ModalSize.Automatic
-	// 		};
-	// 	ModalService.Show<ArchiveList>("Archives Records", options);
-	// }
     private void ShowItemDisposal()
     {
         var options = new ModalOptions
@@ -436,24 +494,6 @@
                 Size = ModalSize.Automatic
             };
         ModalService.Show<ItemDisposalTable>("Item Disposal", options);
-    }
-
-    private void ToggleEntryList()
-    {
-        isEntryListCollapsed = !isEntryListCollapsed;
-        StateHasChanged();
-    }
-
-    private void ToggleTransferList()
-    {
-        isTransferListCollapsed = !isTransferListCollapsed;
-        StateHasChanged();
-    }
-
-    private void ToggleItemList()
-    {
-        isItemListCollapsed = !isItemListCollapsed;
-        StateHasChanged();
     }
 
     private void ShowTransferTable()
