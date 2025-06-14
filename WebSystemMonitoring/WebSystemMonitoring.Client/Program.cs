@@ -9,6 +9,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<Radzen.ThemeService>();
+builder.Services.AddScoped<Radzen.TooltipService>();
 builder.Services.AddMatBlazor();
 builder.Services.AddBlazoredModal();
 

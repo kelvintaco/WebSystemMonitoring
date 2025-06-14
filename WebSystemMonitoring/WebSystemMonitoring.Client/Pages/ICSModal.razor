@@ -89,18 +89,53 @@
         border-color: #9F7AEA;
         cursor: not-allowed;
     }
+
+    .info-tooltip {
+        position: relative;
+        display: inline-block;
+    }
+    .info-tooltip .tooltip-text {
+        visibility: hidden;
+        width: max-content;
+        max-width: 220px;
+        background-color: #333;
+        color: #fff;
+        text-align: left;
+        border-radius: 4px;
+        padding: 6px 10px;
+        position: absolute;
+        z-index: 10;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 0.95em;
+        pointer-events: none;
+    }
+    .info-tooltip:hover .tooltip-text,
+    .info-tooltip:focus-within .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 
 <h1 class="mb-4">Inventory Custodian Slip (ICS)</h1>
 <RadzenForm id="form">
     <div class="main-row">
         <div class="form-group">
-            <RadzenLabel Text="Quantity" />
+            <span style="display: flex; align-items: center;">
+                <RadzenLabel Text="Quantity" Style="margin-bottom:0;" />
+                <span class="info-tooltip" tabindex="0" style="margin-left:5px;">
+                    <i class="fas fa-info-circle" style="color:#3182ce;"></i>
+                    <span class="tooltip-text">Available: @currentStock</span>
+                </span>
+            </span>
             <RadzenNumeric @bind-Value="Qty" Required="true" Min="1" Max="@currentStock" Style="width:70px;" />
-            @if (currentStock > 0)
+            @* @if (currentStock > 0)
             {
                 <span style="margin-left: 5px; color: #666;">(Available: @currentStock)</span>
-            }
+            } *@
         </div>
         <div class="form-group">
             <RadzenLabel Text="Unit" />
@@ -132,9 +167,14 @@
             <RadzenTextBox Value="@ItemCode.ToString()" ReadOnly="true" Style="width:100px;" />
         </div>
         <div class="form-group">
-            <RadzenLabel Text="Total Value" />
+            <span style="display: flex; align-items: center;">
+                <RadzenLabel Text="Total Value" Style="margin-bottom:0;" />
+                <span class="info-tooltip" tabindex="0" style="margin-left:5px;">
+                    <i class="fas fa-info-circle" style="color:#3182ce;"></i>
+                    <span class="tooltip-text">Max 49,999</span>
+                </span>
+            </span>
             <RadzenTextBox Value="@value.ToString("C", new CultureInfo("en-PH"))" ReadOnly="true" Style="width:100px;" />
-            <div style="font-size: 0.8em; color: #666;">max 49999</div>
         </div>
     </div>
     <div name="itemaddlink" style="margin: 10px 0 20px 0; text-align: center;">
