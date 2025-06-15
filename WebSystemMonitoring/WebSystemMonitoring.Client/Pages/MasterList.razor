@@ -327,6 +327,13 @@
                         <RadzenDataGridColumn TItem="Items" Property="Place" Title="Place" />
                     </Columns>
                 </RadzenDataGrid>
+                <div class="flex justify-end mt-4">
+                    <button class="flex items-center gap-2 bg-blue-200 hover:bg-blue-300 
+                               active:bg-blue-400 text-black font-bold py-2 px-4 rounded-lg transition duration-200" 
+                            @onclick="ShowAddItem">
+                        <i class="fas fa-plus text-blue-700"></i> Add Item
+                    </button>
+                </div>
             </div>
         </RadzenTabsItem>
     </Tabs>
